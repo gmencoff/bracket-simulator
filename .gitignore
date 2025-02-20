@@ -79,8 +79,9 @@ node_modules/
 /coverage
 
 # production
-/build
-/dist
+/build/**
+/lib/**
+/dist/**
 
 # misc
 .DS_Store
