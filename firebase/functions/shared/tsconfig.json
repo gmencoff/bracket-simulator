@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+      "module": "commonjs",               // CommonJS module system
+      "target": "es2017",                 // Target ECMAScript version
+      "declaration": true,                // Enable declaration file generation
+      "declarationMap": true,             // Generate a map for declarations (optional)
+      "outDir": "dist",                   // Output directory for compiled files
+      "rootDir": "src",                   // Root source directory for files
+      "strict": true,                     // Enable strict type-checking options
+      "esModuleInterop": true,            // Enable compatibility for ES modules
+      "skipLibCheck": true,               // Skip checking library files
+      "resolveJsonModule": true,          // Allow importing JSON files
+      "moduleResolution": "node",          // Use Node.js module resolution
+      "composite": true,
+      "sourceMap": true
+    },
+    "include": ["src/**/*.ts", "src/**/*.tsx"], // Include all source files
+    "exclude": ["node_modules", "dist"],        // Exclude compiled files and node_modules
+  }
