@@ -1,0 +1,32 @@
+.my-simulations-container {
+    padding: 20px;
+}
+
+.simulations-list {
+    height: 400px;
+    overflow-y: scroll;
+    border: 1px solid black;
+    padding: 10px;
+}
+
+.simulation-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.simulation-info p {
+    margin: 0;
+}
+
+.simulation-status {
+    display: flex;
+    align-items: center;
+}
+
+.simulation-status progress {
+    width: 100px;
+    margin-right: 10px;
+}
