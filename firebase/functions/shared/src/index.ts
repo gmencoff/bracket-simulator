@@ -1,13 +1,15 @@
+import { Conference, initialTeams, Team, MarchMadnessSimulation, TeamEloSimulationInfo, simulateMarchMadness } from './datamodel/MarchMadnessSimulation';
+import { Simulation, simulationConverterLogic, SimulationVisitor } from './datamodel/Simulation';
 import { MarchMadnessSimulationRequest, SimulationRequest, SimulationRequestVisitor, simulationRequestConverterLogic } from './datamodel/SimulationRequest';
-import { Conference, Team, TeamSimulationInfo, initialTeams } from './datamodel/Teams';
-import { getSimulationRequests } from './dbreferences/Collections';
+import { COLLECTIONS, getSimulationRequests } from './dbreferences/Collections';
 import { CollectionReferenceData, DocumentReferenceData } from './dbreferences/DatabaseReferences';
 import { SimulateMarchMadnessInput } from './functioninputs/SimulateMarchMadness';
  
 export {
-    Conference, Team, TeamSimulationInfo, initialTeams,
+    Conference, Team, TeamEloSimulationInfo, initialTeams, MarchMadnessSimulation, simulateMarchMadness,
     SimulateMarchMadnessInput,
-    SimulationRequest, MarchMadnessSimulationRequest, SimulationRequestVisitor, simulationRequestConverterLogic,
-    getSimulationRequests,
+    SimulationRequest, SimulationRequestVisitor, MarchMadnessSimulationRequest, simulationRequestConverterLogic,
+    Simulation, SimulationVisitor, simulationConverterLogic,
+    COLLECTIONS, getSimulationRequests,
     CollectionReferenceData, DocumentReferenceData
 }

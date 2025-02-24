@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
 import './MarchMadness.css'; // Import the CSS file
-import { SimulateMarchMadnessInput, TeamSimulationInfo, initialTeams } from 'shared';
+import { SimulateMarchMadnessInput, TeamEloSimulationInfo, initialTeams } from 'shared';
 import { httpsCallable } from "firebase/functions";
 import { functions } from '../../utils/firebase';
 
 const simulateMarchMadness = httpsCallable(functions, 'simulateMarchMadness');
 
 export const MarchMadness: React.FC = () => {
-    const [teams, setTeams] = useState<TeamSimulationInfo[]>(initialTeams);
+    const [teams, setTeams] = useState<TeamEloSimulationInfo[]>(initialTeams);
     const [showDialog, setShowDialog] = useState(false);
     const [numTournaments, setNumTournaments] = useState(1);
 
     const handleEloChange = (index: number, newElo: number) => {
-        const updatedTeams = teams.map((team, i) =>
-            i === index ? { ...team, elo: newElo } : team
-        );
-        setTeams(updatedTeams);
+        const newTeams = teams;
+        newTeams[index].elo = newElo;
+        setTeams(newTeams);
     };
 
     const resetToDefault = () => {

@@ -1,4 +1,4 @@
-import { TeamSimulationInfo } from "../datamodel/Teams";
+import { TeamSimulationInfo, teamSimulationInfoConverterLogic } from "../datamodel/MarchMadnessSimulation";
 
 export class SimulateMarchMadnessInput {
     teams: TeamSimulationInfo[]
@@ -11,13 +11,13 @@ export class SimulateMarchMadnessInput {
 
     data(): any {
         return {
-            teams: this.teams,
+            teams: this.teams.map(team => teamSimulationInfoConverterLogic.toFireStore(team)),
             numTournaments: this.numTournaments
         };
     }
 
     static createFromObject(data: any): SimulateMarchMadnessInput {
-        const teams = data.teams as TeamSimulationInfo[]
+        const teams = data.teams.map((team: Object) => teamSimulationInfoConverterLogic.fromFireStore(team))
         const numTournaments = data.numTournaments as number
         return new SimulateMarchMadnessInput(teams,numTournaments)
     }

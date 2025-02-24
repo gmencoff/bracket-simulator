@@ -2,6 +2,7 @@ import { CollectionReferenceData } from "./DatabaseReferences"
 
 export const COLLECTIONS = {
     SimulationRequests: "SimulationRequests",
+    Simulations: "Simulations"
 }
 
 export const getSimulationRequests = function(uid: string): CollectionReferenceData {

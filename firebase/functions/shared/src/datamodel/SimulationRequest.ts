@@ -1,5 +1,5 @@
-import { TeamSimulationInfo } from "./Teams";
 import { StorageReferenceData } from "../dbreferences/DatabaseReferences";
+import { TeamSimulationInfo, teamSimulationInfoConverterLogic } from "./MarchMadnessSimulation";
 
 export interface SimulationRequestVisitor<T, U> {
     visitMarchMadnessSimRequest(req: MarchMadnessSimulationRequest, optionalInput?: U): T;
@@ -56,7 +56,7 @@ class RequestConverter implements SimulationRequestVisitor<Object, null> {
             requestedSimulations: req.requestedSimulations,
             completedSimulations: req.completedSimulations,
             requestTime: req.requestTime,
-            teamInfo: req.teamInfo,
+            teamInfo: req.teamInfo.map(ti => teamSimulationInfoConverterLogic.toFireStore(ti)),
             storageReferenceData: req.storageReferenceData
         };
     }
@@ -64,7 +64,7 @@ class RequestConverter implements SimulationRequestVisitor<Object, null> {
     toEvent(event: any): SimulationRequest {
         switch (event.type) {
             case 'SimMarchMadness':
-                return new MarchMadnessSimulationRequest(event.requestedSimulations, event.completedSimulations, event.requestTime, event.teamInfo, event.storageReferenceData);
+                return new MarchMadnessSimulationRequest(event.requestedSimulations, event.completedSimulations, event.requestTime, event.teamInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.storageReferenceData);
             default:
                 throw new Error('Unknown event type');
         }
