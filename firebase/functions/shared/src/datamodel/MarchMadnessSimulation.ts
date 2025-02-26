@@ -1,6 +1,6 @@
 import { Simulation, SimulationVisitor } from "./Simulation";
 
-export const simulateMarchMadness = (teamInfo: TeamSimulationInfo[]): MarchMadnessSimulation => {
+export const simulateMarchMadnessTournement = (teamInfo: TeamSimulationInfo[]): MarchMadnessSimulation => {
     // Implement the simulation logic here
     const results: GameResult[][] = [];
     const rounds = [Round.FirstRound, Round.SecondRound, Round.SweetSixteen, Round.EliteEight, Round.FinalFour, Round.Championship];

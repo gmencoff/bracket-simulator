@@ -1,25 +1,25 @@
 import { SimulateMarchMadnessInput } from "./SimulateMarchMadness";
-import { CollectionReferenceData } from "../dbreferences/DatabaseReferences";
+import { DocumentReferenceData } from "../dbreferences/DatabaseReferences";
 
 export class SimulateBatchInput {
     specification: SimulateMarchMadnessInput
-    collectionReference: CollectionReferenceData
+    documentReference: DocumentReferenceData
 
-    constructor(specification: SimulateMarchMadnessInput, collectionReference: CollectionReferenceData) {
+    constructor(specification: SimulateMarchMadnessInput, documentReference: DocumentReferenceData) {
         this.specification = specification;
-        this.collectionReference = collectionReference;
+        this.documentReference = documentReference;
     }
 
     data(): any {
         return {
             specification: this.specification.data(),
-            collectionReference: this.collectionReference
+            documentReference: this.documentReference
         };
     }
 
     static createFromObject(data: any): SimulateBatchInput {
         const teams = SimulateMarchMadnessInput.createFromObject(data.specification)
-        const collectionReference = data.collectionReference as CollectionReferenceData
-        return new SimulateBatchInput(teams,collectionReference)
+        const documentReference = data.documentReference as DocumentReferenceData
+        return new SimulateBatchInput(teams,documentReference)
     }
 }

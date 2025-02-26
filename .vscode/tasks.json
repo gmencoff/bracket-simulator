@@ -111,7 +111,7 @@
       {
         "label": "Kill Emulators",
         "type": "shell",
-        "command": "lsof -t -i:8080 -i:9000 -i:9099 -i:9199 -i:9090 -i:4000 | xargs kill -9",
+        "command": "lsof -t -i:8080 -i:9000 -i:9099 -i:9199 -i:9090 -i:4000 -i:8085 | xargs kill -9",
       },
       {
         "label": "Start Development App",
