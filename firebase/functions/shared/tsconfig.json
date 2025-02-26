@@ -12,7 +12,7 @@
       "resolveJsonModule": true,          // Allow importing JSON files
       "moduleResolution": "node",          // Use Node.js module resolution
       "composite": true,
-      "sourceMap": true
+      "sourceMap": true,
     },
     "include": ["src/**/*.ts", "src/**/*.tsx"], // Include all source files
     "exclude": ["node_modules", "dist"],        // Exclude compiled files and node_modules
