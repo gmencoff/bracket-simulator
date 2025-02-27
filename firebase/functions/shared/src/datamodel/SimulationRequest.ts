@@ -8,6 +8,7 @@ export interface SimulationRequestVisitor<T, U> {
 export interface SimulationRequest {
     requestTime: number;
     storageReferenceData: StorageReferenceData | null;
+    isComplete(): boolean;
     accept<T,U>(visitor: SimulationRequestVisitor<T,U>, optionalInput?: U): T;
 }
 
@@ -28,6 +29,10 @@ export class MarchMadnessSimulationRequest implements SimulationRequest {
         } else {
             this.storageReferenceData = null;
         }
+    }
+
+    isComplete(): boolean {
+        return this.completedSimulations >= this.requestedSimulations;
     }
 
     accept<T, U>(visitor: SimulationRequestVisitor<T, U>, optionalInput?: U): T {

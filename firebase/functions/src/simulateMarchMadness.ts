@@ -27,6 +27,6 @@ export const simulateMarchMadness = onCall(async (request) => {
         const simulateBatch = new SimulateBatchInput(input, docRef);
         const pubsub = new PubSub();
         const topic = pubsub.topic('simulate-batch');
-        await topic.publishMessage({json: simulateBatch.data()});
+        topic.publishMessage({json: simulateBatch.data()});
     }
 });

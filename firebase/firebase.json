@@ -10,6 +10,12 @@
       "pubsubTopics": {
         "simulate-batch": {
           "maxInstances": 10
+        },
+        "simulation-complete": {
+          "maxInstances": 10
+        },
+        "simulate-batch-group": {
+          "maxInstances": 100
         }
       },
       "ignore": [

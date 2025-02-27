@@ -3,9 +3,9 @@ import { Simulation, SimulationVisitor } from "./Simulation";
 export const simulateMarchMadnessTournement = (teamInfo: TeamSimulationInfo[]): MarchMadnessSimulation => {
     // Implement the simulation logic here
     const results: GameResult[][] = [];
-    const rounds = [Round.FirstRound, Round.SecondRound, Round.SweetSixteen, Round.EliteEight, Round.FinalFour, Round.Championship];
+    const rounds = [MarchMadnessRound.FirstRound, MarchMadnessRound.SecondRound, MarchMadnessRound.SweetSixteen, MarchMadnessRound.EliteEight, MarchMadnessRound.FinalFour, MarchMadnessRound.Championship];
     for (let i = 0; i < rounds.length; i++) {
-        const roundSim = getRoundSimulator(rounds[i]);
+        const roundSim = getMarchMadnessRoundWorker(rounds[i]);
         if (i === 0) {
             results[i] = roundSim.simulateRound([], teamInfo);
         } else {
@@ -32,32 +32,43 @@ export class MarchMadnessSimulation implements Simulation {
         this.championship = championship;
     }
 
+    getAllResults(): GameResult[] {
+        const results = [];
+        results.push(...this.round1);
+        results.push(...this.round2);
+        results.push(...this.sweet16);
+        results.push(...this.elite8);
+        results.push(...this.final4);
+        results.push(...this.championship);
+        return results;
+    }
+
     accept<T, U>(visitor: SimulationVisitor<T, U>, optionalInput?: U): T {
         return visitor.visitMarchMadnessSimulation(this, optionalInput);
     }
 }
 
 
-const getRoundSimulator = (round: Round): RoundSimulator => {
+export const getMarchMadnessRoundWorker = (round: MarchMadnessRound): RoundWorker => {
     switch (round) {
-        case Round.FirstRound:
-            return new FirstRoundSimulator();
-        case Round.SecondRound:
-            return new SecondRoundSimulator();
-        case Round.SweetSixteen:
-            return new SweetSixteenSimulator();
-        case Round.EliteEight:
-            return new EliteEightSimulator();
-        case Round.FinalFour:
-            return new FinalFourSimulator();
-        case Round.Championship:
-            return new ChampionshipSimulator();
+        case MarchMadnessRound.FirstRound:
+            return new FirstRoundWorker();
+        case MarchMadnessRound.SecondRound:
+            return new SecondRoundWorker();
+        case MarchMadnessRound.SweetSixteen:
+            return new SweetSixteenWorker();
+        case MarchMadnessRound.EliteEight:
+            return new EliteEightWorker();
+        case MarchMadnessRound.FinalFour:
+            return new FinalFourWorker();
+        case MarchMadnessRound.Championship:
+            return new ChampionshipWorker();
         default:
             throw new Error('Unknown round');
     }
 }
 
-enum Round {
+export enum MarchMadnessRound {
     FirstRound = 'First Round',
     SecondRound = 'Second Round',
     SweetSixteen = 'Sweet Sixteen',
@@ -66,11 +77,12 @@ enum Round {
     Championship = 'Championship'
 }
 
-interface RoundSimulator {
+interface RoundWorker {
     simulateRound: (lastRound: GameResult[], teamInfo: TeamSimulationInfo[]) => GameResult[];
+    remainingTeams(): number;
 }
 
-class FirstRoundSimulator implements RoundSimulator {
+class FirstRoundWorker implements RoundWorker {
     simulateRound(lastRound: GameResult[], teamInfo: TeamSimulationInfo[]): GameResult[] {
         const results: GameResult[] = [];
         const conferences = new Set(teamInfo.map(info => info.conference));
@@ -83,94 +95,82 @@ class FirstRoundSimulator implements RoundSimulator {
             for (let i = 0; i < nTeams / 2; i++) {
                 const team1 = teams[i];
                 const team2 = teams[nTeams - 1 - i];
-                const winner = team1.simulateGame(team2);
-
-                results.push({
-                    team1,
-                    team2,
-                    winner,
-                    gameInfo: {
-                        round: Round.FirstRound,
-                        gameNumber: i + 1,
-                        conference: conference
-                    }
-                });
+                const winner = team1.simulateGame(team2).winner;
+                results.push(new GameResult(team1, team2, winner, { round: MarchMadnessRound.FirstRound, gameNumber: i + 1, conference: conference }));
             }
         });
 
         return results;
     }
-}
 
-class SecondRoundSimulator implements RoundSimulator {
-    simulateRound(lastRound: GameResult[], teamInfo: TeamSimulationInfo[]): GameResult[] {
-        return conferenceGameSimulator(lastRound, Round.SecondRound);
+    remainingTeams(): number {
+        return 64;
     }
 }
 
-class SweetSixteenSimulator implements RoundSimulator {
+class SecondRoundWorker implements RoundWorker {
     simulateRound(lastRound: GameResult[], teamInfo: TeamSimulationInfo[]): GameResult[] {
-        return conferenceGameSimulator(lastRound, Round.SweetSixteen);
+        return conferenceGameSimulator(lastRound, MarchMadnessRound.SecondRound);
+    }
+
+    remainingTeams(): number {
+        return 32;
     }
 }
 
-class EliteEightSimulator implements RoundSimulator {
+class SweetSixteenWorker implements RoundWorker {
     simulateRound(lastRound: GameResult[], teamInfo: TeamSimulationInfo[]): GameResult[] {
-        return conferenceGameSimulator(lastRound, Round.EliteEight);
+        return conferenceGameSimulator(lastRound, MarchMadnessRound.SweetSixteen);
+    }
+
+    remainingTeams(): number {
+        return 16;
     }
 }
 
-class FinalFourSimulator implements RoundSimulator {
+class EliteEightWorker implements RoundWorker {
+    simulateRound(lastRound: GameResult[], teamInfo: TeamSimulationInfo[]): GameResult[] {
+        return conferenceGameSimulator(lastRound, MarchMadnessRound.EliteEight);
+    }
+
+    remainingTeams(): number {
+        return 8;
+    }
+}
+
+class FinalFourWorker implements RoundWorker {
     simulateRound(currentResults: GameResult[], teamInfo: TeamSimulationInfo[]): GameResult[] {
         const results: GameResult[] = [];
-        const eastWinner = currentResults.filter(result => result.gameInfo.conference === Conference.East)[0].winner;
-        const westWinner = currentResults.filter(result => result.gameInfo.conference === Conference.West)[0].winner;
-        const southWinner = currentResults.filter(result => result.gameInfo.conference === Conference.South)[0].winner;
-        const midwestWinner = currentResults.filter(result => result.gameInfo.conference === Conference.Midwest)[0].winner;
-
-        const eastWestGame = {
-            team1: eastWinner,
-            team2: westWinner,
-            winner: eastWinner.simulateGame(westWinner),
-            gameInfo: {
-            round: Round.FinalFour,
-            gameNumber: 1
-            }
-        };
-
-        const southMidwestGame = {
-            team1: southWinner,
-            team2: midwestWinner,
-            winner: southWinner.simulateGame(midwestWinner),
-            gameInfo: {
-            round: Round.FinalFour,
-            gameNumber: 2
-            }
-        };
-
+        const eastWinner = currentResults.filter(result => result.gameInfo.conference === Conference.East)[0].getWinner();
+        const westWinner = currentResults.filter(result => result.gameInfo.conference === Conference.West)[0].getWinner();
+        const southWinner = currentResults.filter(result => result.gameInfo.conference === Conference.South)[0].getWinner();
+        const midwestWinner = currentResults.filter(result => result.gameInfo.conference === Conference.Midwest)[0].getWinner();
+        const eastWestGame = new GameResult(eastWinner, westWinner, eastWinner.simulateGame(westWinner).winner, { round: MarchMadnessRound.FinalFour, gameNumber: 1 });
+        const southMidwestGame = new GameResult(southWinner, midwestWinner, southWinner.simulateGame(midwestWinner).winner, { round: MarchMadnessRound.FinalFour, gameNumber: 2 });
         results.push(eastWestGame, southMidwestGame);
-
         return results;
     }
-}
 
-class ChampionshipSimulator implements RoundSimulator {
-    simulateRound(currentResults: GameResult[], teamInfo: TeamSimulationInfo[]): GameResult[] {
-        const finalGame = {
-            team1: currentResults[0].winner,
-            team2: currentResults[1].winner,
-            winner: currentResults[0].winner.simulateGame(currentResults[1].winner),
-            gameInfo: {
-            round: Round.Championship,
-            gameNumber: 1
-            }
-        };
-
-        return [finalGame];
+    remainingTeams(): number {
+        return 4;
     }
 }
 
-const conferenceGameSimulator = (lastRound: GameResult[], round: Round): GameResult[] => {
+class ChampionshipWorker implements RoundWorker {
+    simulateRound(currentResults: GameResult[], teamInfo: TeamSimulationInfo[]): GameResult[] {
+        const winner1 = currentResults[0].getWinner();
+        const winner2 = currentResults[1].getWinner();
+        const champ = winner1.simulateGame(winner2).winner;
+        const finalGame = new GameResult(winner1,winner2,champ,{round: MarchMadnessRound.Championship, gameNumber: 1});
+        return [finalGame];
+    }
+
+    remainingTeams(): number {
+        return 2;
+    }
+}
+
+const conferenceGameSimulator = (lastRound: GameResult[], round: MarchMadnessRound): GameResult[] => {
     const results: GameResult[] = [];
     const conferences = new Set(lastRound.map(result => result.gameInfo.conference));
     const nTeams = lastRound.length / conferences.size;
@@ -182,20 +182,10 @@ const conferenceGameSimulator = (lastRound: GameResult[], round: Round): GameRes
         for (let i = 0; i < nGames; i++) {
             const game1 = games[i];
             const game2 = games[nGames - 1 - i];
-            const winner1 = game1.winner;
-            const winner2 = game2.winner;
-            const winner = winner1.simulateGame(winner2);
-
-            results.push({
-                team1: winner1,
-                team2: winner2,
-                winner,
-                gameInfo: {
-                    round: Round.SecondRound,
-                    gameNumber: i + 1,
-                    conference: conference
-                }
-            });
+            const winner1 = game1.getWinner();
+            const winner2 = game2.getWinner();
+            const outcome = winner1.simulateGame(winner2);
+            results.push(new GameResult(winner1,winner2,outcome.winner,{ round: round, gameNumber: i + 1, conference: conference }))
         }
     });
 
@@ -203,16 +193,31 @@ const conferenceGameSimulator = (lastRound: GameResult[], round: Round): GameRes
 }
 
 interface GameInformation {
-    round: Round;
+    round: MarchMadnessRound;
     gameNumber: number;
     conference?: Conference;
 }
 
-interface GameResult {
+class GameResult {
     team1: TeamSimulationInfo;
     team2: TeamSimulationInfo;
-    winner: TeamSimulationInfo;
+    winner: number;
     gameInfo: GameInformation;
+
+    constructor(team1: TeamSimulationInfo, team2: TeamSimulationInfo, winner: number, gameInfo: GameInformation) {
+        this.team1 = team1;
+        this.team2 = team2;
+        this.winner = winner;
+        this.gameInfo = gameInfo;
+    }
+
+    getWinner(): TeamSimulationInfo {
+        return this.winner === 1 ? this.team1 : this.team2;
+    }
+
+    getLoser(): TeamSimulationInfo {
+        return this.winner === 1 ? this.team2 : this.team1;
+    }
 }
 
 export const gameResultConverterLogic = {
@@ -220,19 +225,19 @@ export const gameResultConverterLogic = {
     return {
         team1: teamSimulationInfoConverterLogic.toFireStore(teamSimulationInfo.team1),
         team2: teamSimulationInfoConverterLogic.toFireStore(teamSimulationInfo.team2),
-        winner: teamSimulationInfoConverterLogic.toFireStore(teamSimulationInfo.winner),
+        winner: teamSimulationInfo.winner,
         gameInfo: teamSimulationInfo.gameInfo
     }
   },
 
   fromFireStore: function(document: Object): GameResult {
     const data = document as any;
-    return {
-        team1: teamSimulationInfoConverterLogic.fromFireStore(data.team1),
-        team2: teamSimulationInfoConverterLogic.fromFireStore(data.team2),
-        winner: teamSimulationInfoConverterLogic.fromFireStore(data.winner),
-        gameInfo: data.gameInfo as GameInformation
-    }
+    return new GameResult(
+        teamSimulationInfoConverterLogic.fromFireStore(data.team1),
+        teamSimulationInfoConverterLogic.fromFireStore(data.team2),
+        data.winner,
+        data.gameInfo as GameInformation
+    )
   }
 }
 
@@ -303,8 +308,12 @@ export interface TeamSimulationInfo {
     conference: Conference;
     seed: number;
 
-    simulateGame<T>(this: T, competitor: T): T;
+    simulateGame<T>(this: T, competitor: T): Outcome;
     toFirestore(): Object;
+}
+
+interface Outcome {
+    winner: number
 }
 
 export class TeamEloSimulationInfo implements TeamSimulationInfo {
@@ -320,14 +329,14 @@ export class TeamEloSimulationInfo implements TeamSimulationInfo {
         this.elo = elo;
     }
 
-    simulateGame<T>(this: T, competitor: T): T {
+    simulateGame<T>(this: T, competitor: T): Outcome {
         // TODO: add the actual simulation logic
         const expectedScore =  Math.random();
         const actualScore = Math.random();
         if (actualScore < expectedScore) {
-            return this;
+            return { winner: 1 };
         } else {
-            return competitor;
+            return { winner: 2 };
         }
     }
 
@@ -425,4 +434,4 @@ export const initialTeams: TeamEloSimulationInfo[] = [
     new TeamEloSimulationInfo(Team.BYU, Conference.Midwest, 14, 700),
     new TeamEloSimulationInfo(Team.Tennessee, Conference.Midwest, 15, 600),
     new TeamEloSimulationInfo(Team.Wisconsin, Conference.Midwest, 16, 500)
-];
+]
