@@ -173,15 +173,15 @@ class ChampionshipWorker implements RoundWorker {
 const conferenceGameSimulator = (lastRound: GameResult[], round: MarchMadnessRound): GameResult[] => {
     const results: GameResult[] = [];
     const conferences = new Set(lastRound.map(result => result.gameInfo.conference));
-    const nTeams = lastRound.length / conferences.size;
-    const nGames = nTeams / 2;
+    const nGamesLastRound = lastRound.length / conferences.size;
+    const nGamesCurRound = nGamesLastRound / 2;
 
     conferences.forEach(conference => {
         const games = lastRound.filter(result => result.gameInfo.conference === conference);
 
-        for (let i = 0; i < nGames; i++) {
+        for (let i = 0; i < nGamesCurRound; i++) {
             const game1 = games[i];
-            const game2 = games[nGames - 1 - i];
+            const game2 = games[nGamesLastRound - 1 - i];
             const winner1 = game1.getWinner();
             const winner2 = game2.getWinner();
             const outcome = winner1.simulateGame(winner2);

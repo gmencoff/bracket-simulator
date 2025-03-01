@@ -2,7 +2,7 @@ import { Conference, initialTeams, Team, MarchMadnessSimulation, TeamSimulationI
 import { Simulation, simulationConverterLogic, SimulationVisitor } from './datamodel/Simulation';
 import { MarchMadnessSimulationRequest, SimulationRequest, SimulationRequestVisitor, simulationRequestConverterLogic } from './datamodel/SimulationRequest';
 import { COLLECTIONS, getSimulationRequests } from './dbreferences/Collections';
-import { CollectionReferenceData, DocumentReferenceData } from './dbreferences/DatabaseReferences';
+import { CollectionReferenceData, DocumentReferenceData, StorageReferenceData } from './dbreferences/DatabaseReferences';
 import { SimulateMarchMadnessInput } from './functioninputs/SimulateMarchMadness';
 import { SimulateBatchInput } from './functioninputs/SimulateBatch';
 import { SimulationComplete } from './functioninputs/SimulationComplete';
@@ -17,5 +17,5 @@ export {
     Simulation, SimulationVisitor, simulationConverterLogic,
     COLLECTIONS, getSimulationRequests,
     BUCKETS,
-    CollectionReferenceData, DocumentReferenceData
+    CollectionReferenceData, DocumentReferenceData, StorageReferenceData
 }

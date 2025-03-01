@@ -1,10 +1,12 @@
 import React, { JSX, useEffect, useState } from 'react';
 import { getSimulationRequests, MarchMadnessSimulationRequest, SimulationRequest, SimulationRequestVisitor } from 'shared';
 import './MySimulations.css'; // Import the CSS file
-import { auth } from '../../utils/firebase';
+import { auth, storage } from '../../utils/firebase';
 import { getCollection } from '../../utils/GetCollection';
 import { SimulationRequestConverter } from '../../converters/SimulationRequestConverter';
 import { onSnapshot } from 'firebase/firestore';
+import { ref, getDownloadURL } from "firebase/storage";
+import { saveAs } from "file-saver"; // Helps with downloading
 
 export const MySimulations: React.FC = () => {
     const [simulations, setSimulations] = useState<SimulationRequest[]>([]);
@@ -48,16 +50,32 @@ class SimulationRowRenderer implements SimulationRequestVisitor<JSX.Element, nul
         return (
             <div className="simulation-info">
                 <p>Type: Simulate March Madness</p>
-                <p>Requested Simulations: {req.requestedSimulations}</p>
-                <p>Completed Simulations: {req.completedSimulations}</p>
+                <p>Number Simulations: {req.requestedSimulations}</p>
                 <div className="simulation-status">
                     {req.completedSimulations < req.requestedSimulations ? (
                         <progress value={req.completedSimulations} max={req.requestedSimulations}></progress>
                     ) : (
-                        <a href={req.storageReferenceData?.fullPath} download>Download Results</a>
+                        <button onClick={() => downloadCSV(req.storageReferenceData?.fullPath || '')}>
+                            Download Results
+                        </button>
                     )}
                 </div>
             </div>
         );
     }
 }
+
+const downloadCSV = async (path: string) => {
+  const fileRef = ref(storage, path); // Path in Firebase Storage
+
+  try {
+    const url = await getDownloadURL(fileRef); // Get the file URL
+
+    // Fetch the file and trigger download
+    const response = await fetch(url);
+    const blob = await response.blob();
+    saveAs(blob, "simulation.csv");
+  } catch (error) {
+    console.error("Error downloading file:", error);
+  }
+};

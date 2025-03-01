@@ -1,5 +1,5 @@
 import { onMessagePublished } from "firebase-functions/pubsub";
-import { COLLECTIONS, MarchMadnessSimulationRequest, SimulationComplete, SimulationRequestVisitor, MarchMadnessSimulation, TeamSimulationInfo, Conference, MarchMadnessRound, getMarchMadnessRoundWorker } from "shared";
+import { COLLECTIONS, MarchMadnessSimulationRequest, SimulationComplete, SimulationRequestVisitor, MarchMadnessSimulation, TeamSimulationInfo, Conference, MarchMadnessRound, getMarchMadnessRoundWorker, SimulationRequest } from "shared";
 import { getDocument } from "./utils/GetCollection";
 import { SimulationRequestConverter } from "./converters/SimulationRequestConverter";
 import { SimulationConverter } from "./converters/SimulationConverter";
@@ -7,6 +7,7 @@ import { Storage } from '@google-cloud/storage';
 import { createObjectCsvStringifier } from 'csv-writer';
 import { v4 as uuidv4 } from 'uuid';
 import { BUCKETS } from "shared";
+import { StorageReferenceData } from "shared/dist/dbreferences/DatabaseReferences";
 
 // Initialize Google Cloud Storage
 const storage = new Storage();
@@ -24,13 +25,30 @@ export const simulationComplete = onMessagePublished('simulation-complete', asyn
 });
 
 class SimulationRequestCompletion implements SimulationRequestVisitor<void, FirebaseFirestore.DocumentReference | undefined> {
-    async visitMarchMadnessSimRequest(req: MarchMadnessSimulationRequest, optionalInput?: FirebaseFirestore.DocumentReference): Promise<void> {
+    async visitMarchMadnessSimRequest(req: MarchMadnessSimulationRequest, optionalInput?: FirebaseFirestore.DocumentReference<SimulationRequest, FirebaseFirestore.DocumentData>): Promise<void> {
         if (optionalInput) {
             const simulationsSnapshot = await optionalInput.collection(COLLECTIONS.Simulations).withConverter(SimulationConverter).get();
             const simulations = simulationsSnapshot.docs.map(doc => doc.data() as MarchMadnessSimulation);
 
             // Write simulations to CSV and upload to Google Cloud Storage
-            await this.writeSimulationsToCSV(req.teamInfo, simulations, `simulations/${uuidv4()}.csv`);
+            const path = `simulations/${uuidv4()}.csv`;
+            await this.writeSimulationsToCSV(req.teamInfo, simulations, path);
+
+            // Update the Simulation Request document to mark it as completed
+            await optionalInput.firestore.runTransaction(async (transaction) => {
+                const doc = await transaction.get(optionalInput);
+                if (doc.exists) {
+                    const docData = doc.data();
+                    if (docData) {
+                        const storage: StorageReferenceData = {
+                            bucket: BUCKETS.SimulationResults,
+                            fullPath: path
+                        }
+                        docData.storageReferenceData = storage;
+                        transaction.set(optionalInput, docData);
+                    }
+                }
+            });
         }
     }
 
@@ -52,7 +70,7 @@ class SimulationRequestCompletion implements SimulationRequestVisitor<void, Fire
 }
 
 const createHeader = (teams: TeamSimulationInfo[]): { id: string, title: string }[] => {
-    const header = [];
+    const header = [{id: 'sim', title: 'Simulation'}];
     const conferences = [Conference.East, Conference.West, Conference.Midwest, Conference.South];
     for (const conference of conferences) {
         for (let seed = 1; seed <= 16; seed++) {
@@ -67,11 +85,13 @@ const createHeader = (teams: TeamSimulationInfo[]): { id: string, title: string 
 
 const createData = (simulations: MarchMadnessSimulation[]): any[] => {
     const records = [];
-    for (const simulation of simulations) {
+    for (let i = 0; i < simulations.length; i++) {
+        const simulation = simulations[i];
         const cRecord: { [key: string]: number } = {};
+        cRecord['sim'] = i+1;
         const games = simulation.getAllResults();
-        for (const game of games) {
-            // if this is the championship game, winner is 1 and loser is 2, otherwise just mark loser
+        for (let j = 0; j < games.length; j++) {
+            const game = games[j];
             if (game.gameInfo.round === MarchMadnessRound.Championship) {
                 const winner = game.getWinner();
                 const winnerid = getCsvId(winner.conference, winner.seed);

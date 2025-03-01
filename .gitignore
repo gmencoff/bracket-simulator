@@ -95,3 +95,6 @@ yarn-debug.log*
 yarn-error.log*
 
 *.tsbuildinfo
+
+# Package lock files ignored
+**/package-lock.json
