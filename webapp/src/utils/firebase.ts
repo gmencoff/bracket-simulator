@@ -5,7 +5,6 @@ import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage } from 'firebase/storage';
 import { connectStorageEmulator } from "firebase/storage";
-import { BUCKETS } from "shared";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDF6XhedLrMHYY7Ms55t56Nhp6sBuJXcMI",
@@ -22,7 +21,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const functions = getFunctions(app);
 const firestore = getFirestore(app);
-const storage = getStorage(app, `gs://${BUCKETS.SimulationResults}`);
+const storage = getStorage(app);
 
 // Use emulators if running on localhost
 if (window.location.hostname === "localhost") {

@@ -5,7 +5,6 @@ import { SimulationRequestConverter } from "./converters/SimulationRequestConver
 import { SimulationConverter } from "./converters/SimulationConverter";
 import { createObjectCsvStringifier } from 'csv-writer';
 import { v4 as uuidv4 } from 'uuid';
-import { BUCKETS } from "shared";
 import { StorageReferenceData } from "shared/dist/dbreferences/DatabaseReferences";
 import * as admin from 'firebase-admin';
 
@@ -37,7 +36,7 @@ class SimulationRequestCompletion implements SimulationRequestVisitor<void, Fire
                     const docData = doc.data();
                     if (docData) {
                         const storage: StorageReferenceData = {
-                            bucket: BUCKETS.SimulationResults,
+                            bucket: 'default',
                             fullPath: path
                         }
                         docData.storageReferenceData = storage;
@@ -58,7 +57,7 @@ class SimulationRequestCompletion implements SimulationRequestVisitor<void, Fire
         const csvContent = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(data);
 
         // Upload CSV to Google Cloud Storage
-        const simulationBucket = admin.storage().bucket(BUCKETS.SimulationResults);
+        const simulationBucket = admin.storage().bucket();
         const file = simulationBucket.file(filePath);
         await file.save(csvContent, {
             contentType: 'text/csv'
