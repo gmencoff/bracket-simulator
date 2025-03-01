@@ -1,7 +1,7 @@
 {
   "name": "functions",
   "scripts": {
-    "lint": "eslint --ext .js,.ts .",
+    "lint": "eslint",
     "build": "npm run build:shared && npm run build:functions",
     "build:functions": "tsc",
     "build:shared": "cd ./shared && npm run build",
