@@ -52,12 +52,12 @@ class SimulationRowRenderer implements SimulationRequestVisitor<JSX.Element, nul
                 <p>Type: Simulate March Madness</p>
                 <p>Number Simulations: {req.requestedSimulations}</p>
                 <div className="simulation-status">
-                    {req.completedSimulations < req.requestedSimulations ? (
-                        <progress value={req.completedSimulations} max={req.requestedSimulations}></progress>
-                    ) : (
+                    {(req.storageReferenceData?.fullPath) ? (
                         <button onClick={() => downloadCSV(req.storageReferenceData?.fullPath || '')}>
                             Download Results
                         </button>
+                    ) : (
+                        <progress value={req.completedSimulations} max={req.requestedSimulations}></progress>
                     )}
                 </div>
             </div>
