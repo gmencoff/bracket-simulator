@@ -28,9 +28,11 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "npm run build:shared && npm run build:app",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build:shared": "cd ../firebase/functions/shared && npm run build",
+    "build:app": "react-scripts build"
   },
   "eslintConfig": {
     "extends": [
