@@ -3,15 +3,11 @@ import { COLLECTIONS, MarchMadnessSimulationRequest, SimulationComplete, Simulat
 import { getDocument } from "./utils/GetCollection";
 import { SimulationRequestConverter } from "./converters/SimulationRequestConverter";
 import { SimulationConverter } from "./converters/SimulationConverter";
-import { Storage } from '@google-cloud/storage';
 import { createObjectCsvStringifier } from 'csv-writer';
 import { v4 as uuidv4 } from 'uuid';
 import { BUCKETS } from "shared";
 import { StorageReferenceData } from "shared/dist/dbreferences/DatabaseReferences";
-
-// Initialize Google Cloud Storage
-const storage = new Storage();
-const simulationBucket = storage.bucket(BUCKETS.SimulationResults);
+import * as admin from 'firebase-admin';
 
 export const simulationComplete = onMessagePublished('simulation-complete', async (event) => {
     // When a simulation is completed, perform some final actions
@@ -62,6 +58,7 @@ class SimulationRequestCompletion implements SimulationRequestVisitor<void, Fire
         const csvContent = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(data);
 
         // Upload CSV to Google Cloud Storage
+        const simulationBucket = admin.storage().bucket(BUCKETS.SimulationResults);
         const file = simulationBucket.file(filePath);
         await file.save(csvContent, {
             contentType: 'text/csv'
