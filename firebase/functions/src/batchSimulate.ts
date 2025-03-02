@@ -1,10 +1,11 @@
 import { onMessagePublished } from "firebase-functions/v2/pubsub";
 import { getCollection, getDocument } from "./utils/GetCollection";
-import { CollectionReferenceData, COLLECTIONS, DocumentReferenceData, MarchMadnessSimulationRequest, SimulateBatchInput, SimulateMarchMadnessInput, simulateMarchMadnessTournement, SimulationComplete, SimulationRequest, SimulationRequestVisitor, TeamSimulationInfo } from "shared";
+import { CollectionReferenceData, COLLECTIONS, DocumentReferenceData, MarchMadnessSimulation, MarchMadnessSimulationRequest, SimulateBatchInput, SimulateMarchMadnessInput, simulateMarchMadnessTournement, SimulationComplete, SimulationRequest, SimulationRequestVisitor, TeamSimulationInfo } from "shared";
 import { firestore } from "firebase-admin";
 import { SimulationRequestConverter } from "./converters/SimulationRequestConverter";
 import { SimulationConverter } from "./converters/SimulationConverter";
 import { PubSub } from '@google-cloud/pubsub';
+import * as admin from 'firebase-admin';
 
 export const batchSimulate = onMessagePublished('simulate-batch', async (event) => {
     // Get the batch simulate input, break it up into smaller batches and simulate each batch
@@ -13,7 +14,7 @@ export const batchSimulate = onMessagePublished('simulate-batch', async (event) 
     // Publish messages to simulate in smaller batches
     const pubsub = new PubSub();
     const topic = pubsub.topic('simulate-batch-group');
-    const batchSize = 1000;
+    const batchSize = 100;
     let remainingSimulations = input.specification.numTournaments;
     while (remainingSimulations > 0) {
         const currentBatchSize = Math.min(batchSize, remainingSimulations);
@@ -41,12 +42,26 @@ const simulateAllTournaments = async (teamInfo: TeamSimulationInfo[], requestedS
     }
 
     // Simulate the requested number of tournaments in batches
-    await Promise.all(Array.from({ length: requestedSimulations }, () => simulateTournament(teamInfo, collRef)));
+    const simData = simulateManyTournaments(teamInfo, requestedSimulations);
+    const batch = admin.firestore().batch();
+    simData.forEach((doc) => {  
+        const ref = getCollection(collRef).withConverter(SimulationConverter).doc();      
+        batch.set(ref, doc);
+    });
+    await batch.commit();
 
     // Mark the request as complete
     const doc = getDocument(simDoc);
     await updateRequestProgress(doc,requestedSimulations,simDoc);
 };
+
+const simulateManyTournaments = (teamInfo: TeamSimulationInfo[], requestedSimulations: number): MarchMadnessSimulation[] => {
+    const sims: MarchMadnessSimulation[] = [];
+    for (let i = 0; i < requestedSimulations; i++) {
+        sims.push(simulateMarchMadnessTournement(teamInfo));
+    }
+    return sims
+}
 
 const updateRequestProgress = async (requestRef: firestore.DocumentReference, completedSimulation: number, simDoc: DocumentReferenceData) => {
     await firestore().runTransaction(async (transaction) => {
@@ -74,10 +89,4 @@ class RequestProgressUpdater implements SimulationRequestVisitor<SimulationReque
         }
         return req;
     }
-};
-
-const simulateTournament = async (teamInfo: TeamSimulationInfo[], simCollection: CollectionReferenceData) => {
-    const collection = getCollection(simCollection);
-    const sim = simulateMarchMadnessTournement(teamInfo);
-    await collection.withConverter(SimulationConverter).add(sim)
 };
