@@ -1,6 +1,6 @@
 import { onMessagePublished } from "firebase-functions/v2/pubsub";
 import { getCollection, getDocument } from "./utils/GetCollection";
-import { CollectionReferenceData, COLLECTIONS, DocumentReferenceData, MarchMadnessSimulation, MarchMadnessSimulationRequest, SimulateBatchInput, SimulateMarchMadnessInput, simulateMarchMadnessTournement, SimulationComplete, SimulationRequest, SimulationRequestVisitor, TeamSimulationInfo } from "shared";
+import { CollectionReferenceData, COLLECTIONS, DocumentReferenceData, MarchMadnessSimulation, MarchMadnessSimulationRequest, SimulateBatchInput, simulateMarchMadnessTournement, SimulationComplete, SimulationRequest, SimulationRequestVisitor, TeamSimulationInfo } from "shared";
 import { firestore } from "firebase-admin";
 import { SimulationRequestConverter } from "./converters/SimulationRequestConverter";
 import { SimulationConverter } from "./converters/SimulationConverter";
@@ -12,27 +12,24 @@ export const batchSimulate = onMessagePublished('simulate-batch', async (event) 
     const input = SimulateBatchInput.createFromObject(event.data.message.json);
 
     // Publish messages to simulate in smaller batches
-    const pubsub = new PubSub();
-    const topic = pubsub.topic('simulate-batch-group');
     const batchSize = 100;
     let remainingSimulations = input.specification.numTournaments;
-    while (remainingSimulations > 0) {
-        const currentBatchSize = Math.min(batchSize, remainingSimulations);
-        const simspec = new SimulateMarchMadnessInput(input.specification.teams, currentBatchSize);
-        const batchInput = new SimulateBatchInput(simspec, input.documentReference);
-        topic.publishMessage({ json: batchInput.data() });
-        remainingSimulations -= currentBatchSize;
+    const currentBatchSize = Math.min(batchSize, remainingSimulations);
+
+    // Stop if there are no batches left
+    if (currentBatchSize <= 0) {
+        return
     }
+
+    // simulat the tournements in a batch
+    await simulateAllTournaments(input.specification.teams, currentBatchSize, input.documentReference);
+
+    // call function again with new remaining sims
+    input.specification.numTournaments = input.specification.numTournaments - currentBatchSize;
+    const pubsub = new PubSub();
+    const topic = pubsub.topic('simulate-batch');
+    topic.publishMessage({ json: input.data() });
 });
-
-export const simulateBatchGroup = onMessagePublished('simulate-batch-group', async (event) => {
-    // Simulate the batch group
-    const input = SimulateBatchInput.createFromObject(event.data.message.json);
-
-    // Simulate the requested number of tournaments
-    await simulateAllTournaments(input.specification.teams, input.specification.numTournaments, input.documentReference);
-});
-
 
 const simulateAllTournaments = async (teamInfo: TeamSimulationInfo[], requestedSimulations: number, simDoc: DocumentReferenceData) => {
     // Get the simulation collection
