@@ -7,6 +7,9 @@
     overflow-y: scroll;
     border: 1px solid black;
     padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .simulation-row {
@@ -14,7 +17,20 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    border-bottom: 1px solid #ccc;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.simulation-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.simulation-details {
+    flex-grow: 1;
 }
 
 .simulation-info p {
@@ -29,4 +45,18 @@
 .simulation-status progress {
     width: 100px;
     margin-right: 10px;
+}
+
+.download-button {
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.download-button:hover {
+    background-color: #0056b3;
 }

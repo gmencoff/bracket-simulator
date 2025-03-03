@@ -32,8 +32,12 @@ export const MarchMadness: React.FC = () => {
     const handleDialogOk = async () => {
         setShowDialog(false);
         const input = new SimulateMarchMadnessInput(teams, numTournaments);
-        await simulateMarchMadness(input.data());
-        alert(`Running ${numTournaments} simulations... Please go to the "My Simulations" tab to check progress.`);
+        try {
+            await simulateMarchMadness(input.data());
+            alert(`Running ${numTournaments} simulations... Please go to the "My Simulations" tab to check progress.`);
+        } catch (error: any) {
+            alert(error.message);
+        }
     };
 
     return (

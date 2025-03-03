@@ -12,8 +12,8 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div>
-            <Tabs value={selectedTab} onChange={handleChange}>
+        <div style={{ padding: "20px" }}>
+            <Tabs value={selectedTab} onChange={handleChange} style={{ marginBottom: "20px" }}>
                 <Tab label="March Madness" />
                 <Tab label="My Simulations" />
             </Tabs>

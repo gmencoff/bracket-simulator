@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { auth } from '../../utils/firebase';
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 function Login() {
     const [email, setEmail] = useState('');
@@ -23,28 +23,30 @@ function Login() {
     };
 
     return (
-        <div style={{ padding: "20px" }}>
+        <div style={{ padding: "20px", maxWidth: "400px", margin: "0 auto", textAlign: "center" }}>
+            <h1>March Madness Simulator</h1>
             <h2>Login</h2>
-            <form onSubmit={handleLogin}>
-            <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-            />
-            <br />
-            <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-            />
-            <br />
-            <button type="submit">Login</button>
+            <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    style={{ padding: "10px", fontSize: "16px" }}
+                />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    style={{ padding: "10px", fontSize: "16px" }}
+                />
+                <button type="submit" style={{ padding: "10px", fontSize: "16px", cursor: "pointer" }}>Login</button>
             </form>
             {error && <p style={{ color: "red" }}>{error}</p>}
+            <Link to="/signup" style={{ display: "block", marginTop: "10px", padding: "10px", textDecoration: "none", color: "white", backgroundColor: "gray", borderRadius: "5px" }}>Go to Sign Up</Link>
         </div>
     );
 }

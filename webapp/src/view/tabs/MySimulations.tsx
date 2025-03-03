@@ -49,11 +49,13 @@ class SimulationRowRenderer implements SimulationRequestVisitor<JSX.Element, nul
     visitMarchMadnessSimRequest(req: MarchMadnessSimulationRequest, optionalInput?: null): JSX.Element {
         return (
             <div className="simulation-info">
-                <p>Type: Simulate March Madness</p>
-                <p>Number Simulations: {req.requestedSimulations}</p>
+                <div className="simulation-details">
+                    <p>Type: Simulate March Madness</p>
+                    <p>Number Simulations: {req.requestedSimulations}</p>
+                </div>
                 <div className="simulation-status">
                     {(req.storageReferenceData?.fullPath) ? (
-                        <button onClick={() => downloadCSV(req.storageReferenceData?.fullPath || '')}>
+                        <button className="download-button" onClick={() => downloadCSV(req.storageReferenceData?.fullPath || '')}>
                             Download Results
                         </button>
                     ) : (
@@ -74,7 +76,7 @@ const downloadCSV = async (path: string) => {
     // Fetch the file and trigger download
     const response = await fetch(url);
     const blob = await response.blob();
-    saveAs(blob, "simulation.csv");
+    saveAs(blob, fileRef.name);
   } catch (error) {
     console.error("Error downloading file:", error);
   }

@@ -1,5 +1,5 @@
 import './App.css';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./auth/Login";
 import Signup from "./auth/Signup";
 import Dashboard from './Dashboard';
@@ -12,12 +12,6 @@ const App = () => {
 
   return (
     <Router>
-      {!user && (
-        <nav>
-          <Link to="/">Login</Link> | <Link to="/signup">Sign Up</Link>
-        </nav>
-      )}
-
       <Routes>
         <Route
           path="/"
