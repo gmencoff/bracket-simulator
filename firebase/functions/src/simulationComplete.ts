@@ -44,7 +44,7 @@ class SimulationRequestCompletion implements SimulationRequestVisitor<void, Fire
         
                 // Create simulation csv data
                 const simulations = snapshot.docs.map(doc => doc.data() as MarchMadnessSimulation);
-                data.push(...createData(simulations));
+                data.push(...createData(simulations,data.length+1));
         
                 lastDoc = snapshot.docs[snapshot.docs.length - 1];
         
@@ -95,12 +95,12 @@ const createHeader = (teams: TeamSimulationInfo[]): { id: string, title: string 
     return header;
 }
 
-const createData = (simulations: MarchMadnessSimulation[]): any[] => {
+const createData = (simulations: MarchMadnessSimulation[], startIdx: number): any[] => {
     const records = [];
     for (let i = 0; i < simulations.length; i++) {
         const simulation = simulations[i];
         const cRecord: { [key: string]: number } = {};
-        cRecord['sim'] = i+1;
+        cRecord['sim'] = i+startIdx;
         const games = simulation.getAllResults();
         for (let j = 0; j < games.length; j++) {
             const game = games[j];
