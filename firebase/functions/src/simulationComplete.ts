@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { StorageReferenceData } from "shared/dist/dbreferences/DatabaseReferences";
 import * as admin from 'firebase-admin';
 
-export const simulationComplete = onMessagePublished('simulation-complete', async (event) => {
+export const simulationComplete = onMessagePublished({ topic: 'simulation-complete', memory: "2GiB", timeoutSeconds: 300}, async (event) => {
     // When a simulation is completed, perform some final actions
     const input = SimulationComplete.createFromObject(event.data.message.json);
     const docRef = getDocument(input.documentReference).withConverter(SimulationRequestConverter);
