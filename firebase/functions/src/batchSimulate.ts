@@ -7,7 +7,7 @@ import { SimulationConverter } from "./converters/SimulationConverter";
 import { PubSub } from '@google-cloud/pubsub';
 import * as admin from 'firebase-admin';
 
-export const batchSimulate = onMessagePublished('simulate-batch', async (event) => {
+export const batchSimulate = onMessagePublished({ topic: 'simulate-batch', memory: "2GiB", timeoutSeconds: 300}, async (event) => {
     // Get the batch simulate input, break it up into smaller batches and simulate each batch
     const input = SimulateBatchInput.createFromObject(event.data.message.json);
 

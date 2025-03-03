@@ -1,6 +1,7 @@
 import { gameResultConverterLogic, MarchMadnessSimulation } from "./MarchMadnessSimulation";
 
 export interface Simulation {
+    tCreated: number
     accept<T,U>(visitor: SimulationVisitor<T,U>, optionalInput?: U): T;
 }
 
@@ -31,7 +32,8 @@ class SimulationConverter implements SimulationVisitor<Object, null> {
             sweet16: req.sweet16.map(game => gameResultConverterLogic.toFireStore(game)),
             elite8: req.elite8.map(game => gameResultConverterLogic.toFireStore(game)),
             final4: req.final4.map(game => gameResultConverterLogic.toFireStore(game)),
-            championship: req.championship.map(game => gameResultConverterLogic.toFireStore(game))
+            championship: req.championship.map(game => gameResultConverterLogic.toFireStore(game)),
+            tCreated: req.tCreated
         };
     }
     
@@ -44,7 +46,8 @@ class SimulationConverter implements SimulationVisitor<Object, null> {
                 event.sweet16.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
                 event.elite8.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
                 event.final4.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
-                event.championship.map((game: Object) => gameResultConverterLogic.fromFireStore(game))
+                event.championship.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
+                event.tCreated
             );
             default:
                 throw new Error('Unknown event type');

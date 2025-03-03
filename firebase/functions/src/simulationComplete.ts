@@ -22,12 +22,45 @@ export const simulationComplete = onMessagePublished('simulation-complete', asyn
 class SimulationRequestCompletion implements SimulationRequestVisitor<void, FirebaseFirestore.DocumentReference | undefined> {
     async visitMarchMadnessSimRequest(req: MarchMadnessSimulationRequest, optionalInput?: FirebaseFirestore.DocumentReference<SimulationRequest, FirebaseFirestore.DocumentData>): Promise<void> {
         if (optionalInput) {
-            const simulationsSnapshot = await optionalInput.collection(COLLECTIONS.Simulations).withConverter(SimulationConverter).get();
-            const simulations = simulationsSnapshot.docs.map(doc => doc.data() as MarchMadnessSimulation);
-
-            // Write simulations to CSV and upload to Google Cloud Storage
+            // Setup
+            const collectionRef = optionalInput.collection(COLLECTIONS.Simulations).withConverter(SimulationConverter)
+            let lastDoc = null;
+            let batchSize = 100; // Adjust based on Firestore limits
             const path = `simulations/${uuidv4()}.csv`;
-            await this.writeSimulationsToCSV(req.teamInfo, simulations, path);
+            
+            // create header and data
+            const header = createHeader(req.teamInfo);
+            const data: any = [];
+        
+            // Download data in chunks
+            do {
+                let query = collectionRef.orderBy("tCreated").limit(batchSize);
+                if (lastDoc) {
+                    query = query.startAfter(lastDoc);
+                }
+                
+                const snapshot = await query.get();
+                if (snapshot.empty) break;
+        
+                // Create simulation csv data
+                const simulations = snapshot.docs.map(doc => doc.data() as MarchMadnessSimulation);
+                data.push(...createData(simulations));
+        
+                lastDoc = snapshot.docs[snapshot.docs.length - 1];
+        
+            } while (lastDoc);
+
+            const csvStringifier = createObjectCsvStringifier({header: header});
+
+            // create csv
+            const csvContent = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(data);
+
+            // Upload CSV to Google Cloud Storage
+            const simulationBucket = admin.storage().bucket();
+            const file = simulationBucket.file(path);
+            await file.save(csvContent, {
+                contentType: 'text/csv'
+            });
 
             // Update the Simulation Request document to mark it as completed
             await optionalInput.firestore.runTransaction(async (transaction) => {
@@ -45,23 +78,6 @@ class SimulationRequestCompletion implements SimulationRequestVisitor<void, Fire
                 }
             });
         }
-    }
-
-    private async writeSimulationsToCSV(teams: TeamSimulationInfo[], simulations: MarchMadnessSimulation[], filePath: string): Promise<void> {
-        // create header and data
-        const header = createHeader(teams);
-        const data = createData(simulations);
-        const csvStringifier = createObjectCsvStringifier({header: header});
-
-        // create csv
-        const csvContent = csvStringifier.getHeaderString() + csvStringifier.stringifyRecords(data);
-
-        // Upload CSV to Google Cloud Storage
-        const simulationBucket = admin.storage().bucket();
-        const file = simulationBucket.file(filePath);
-        await file.save(csvContent, {
-            contentType: 'text/csv'
-        });
     }
 }
 

@@ -12,7 +12,7 @@ export const simulateMarchMadnessTournement = (teamInfo: TeamSimulationInfo[]): 
             results[i] = roundSim.simulateRound(results[i-1], teamInfo);
         }
     }
-    return new MarchMadnessSimulation(results[0], results[1], results[2], results[3], results[4], results[5]);
+    return new MarchMadnessSimulation(results[0], results[1], results[2], results[3], results[4], results[5], Date.now());
 }
 
 export class MarchMadnessSimulation implements Simulation {
@@ -22,14 +22,16 @@ export class MarchMadnessSimulation implements Simulation {
     elite8: GameResult[];
     final4: GameResult[];
     championship: GameResult[];
+    tCreated: number
 
-    constructor(round1: GameResult[], round2: GameResult[], sweet16: GameResult[], elite8: GameResult[], final4: GameResult[], championship: GameResult[]) {
+    constructor(round1: GameResult[], round2: GameResult[], sweet16: GameResult[], elite8: GameResult[], final4: GameResult[], championship: GameResult[], tCreated: number) {
         this.round1 = round1;
         this.round2 = round2;
         this.sweet16 = sweet16;
         this.elite8 = elite8;
         this.final4 = final4;
         this.championship = championship;
+        this.tCreated = tCreated;
     }
 
     getAllResults(): GameResult[] {
