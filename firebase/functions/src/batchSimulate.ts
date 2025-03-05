@@ -31,7 +31,7 @@ export const batchSimulate = onMessagePublished({ topic: 'simulate-batch', memor
     topic.publishMessage({ json: input.data() });
 });
 
-const simulateAllTournaments = async (teamInfo: TeamSimulationInfo[], requestedSimulations: number, simDoc: DocumentReferenceData) => {
+const simulateAllTournaments = async (teamInfo: TeamSimulationInfo<any>[], requestedSimulations: number, simDoc: DocumentReferenceData) => {
     // Get the simulation collection
     const collRef: CollectionReferenceData = {
         collectionId: COLLECTIONS.Simulations,
@@ -52,7 +52,7 @@ const simulateAllTournaments = async (teamInfo: TeamSimulationInfo[], requestedS
     await updateRequestProgress(doc,requestedSimulations,simDoc);
 };
 
-const simulateManyTournaments = (teamInfo: TeamSimulationInfo[], requestedSimulations: number): MarchMadnessSimulation[] => {
+const simulateManyTournaments = (teamInfo: TeamSimulationInfo<any>[], requestedSimulations: number): MarchMadnessSimulation[] => {
     const sims: MarchMadnessSimulation[] = [];
     for (let i = 0; i < requestedSimulations; i++) {
         sims.push(simulateMarchMadnessTournement(teamInfo));

@@ -1,10 +1,10 @@
-import { TeamSimulationInfo, teamSimulationInfoConverterLogic } from "../datamodel/MarchMadnessSimulation";
+import { TeamEloSimulationInfo, TeamSimulationInfo, teamSimulationInfoConverterLogic } from "../datamodel/MarchMadnessSimulation";
 
 export class SimulateMarchMadnessInput {
-    teams: TeamSimulationInfo[]
+    teams: TeamEloSimulationInfo[]
     numTournaments: number
 
-    constructor(teams: TeamSimulationInfo[], numTournements: number) {
+    constructor(teams: TeamEloSimulationInfo[], numTournements: number) {
         this.teams = teams;
         this.numTournaments = numTournements;
     }

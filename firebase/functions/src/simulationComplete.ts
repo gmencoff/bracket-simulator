@@ -81,7 +81,7 @@ class SimulationRequestCompletion implements SimulationRequestVisitor<void, Fire
     }
 }
 
-const createHeader = (teams: TeamSimulationInfo[]): { id: string, title: string }[] => {
+const createHeader = (teams: TeamSimulationInfo<any>[]): { id: string, title: string }[] => {
     const header = [{id: 'sim', title: 'Simulation'}];
     const conferences = [Conference.East, Conference.West, Conference.Midwest, Conference.South];
     for (const conference of conferences) {

@@ -1,3 +1,4 @@
+import { TeamEloSimulationInfo } from "./MarchMadnessSimulation";
 import { StorageReferenceData } from "../dbreferences/DatabaseReferences";
 import { TeamSimulationInfo, teamSimulationInfoConverterLogic } from "./MarchMadnessSimulation";
 
@@ -16,10 +17,10 @@ export class MarchMadnessSimulationRequest implements SimulationRequest {
     requestedSimulations: number;
     completedSimulations: number;
     requestTime: number;
-    teamInfo: TeamSimulationInfo[];
+    teamInfo: TeamEloSimulationInfo[];
     storageReferenceData: StorageReferenceData | null;
 
-    constructor(requestedSimulations: number, completedSimulations: number, requestTime: number, teamInfo: TeamSimulationInfo[], storageReferenceData?: StorageReferenceData) {
+    constructor(requestedSimulations: number, completedSimulations: number, requestTime: number, teamInfo: TeamEloSimulationInfo[], storageReferenceData?: StorageReferenceData) {
         this.requestedSimulations = requestedSimulations;
         this.completedSimulations = completedSimulations;
         this.requestTime = requestTime;

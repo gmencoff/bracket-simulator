@@ -3,6 +3,7 @@ import { Tabs, Tab } from '@mui/material';
 import { useState } from 'react';
 import { MarchMadness } from './tabs/MarchMadness';
 import { MySimulations } from './tabs/MySimulations';
+import { PoolSimulation } from './tabs/PoolSimulation';
 
 const Dashboard: React.FC = () => {
     const [selectedTab, setSelectedTab] = useState(0);
@@ -14,11 +15,13 @@ const Dashboard: React.FC = () => {
     return (
         <div style={{ padding: "20px" }}>
             <Tabs value={selectedTab} onChange={handleChange} style={{ marginBottom: "20px" }}>
-                <Tab label="March Madness" />
+                <Tab label="Tournament Simulator" />
+                <Tab label="Bracket Pool Simulator" />
                 <Tab label="My Simulations" />
             </Tabs>
             {selectedTab === 0 && <MarchMadness />}
-            {selectedTab === 1 && <MySimulations />}
+            {selectedTab === 1 && <PoolSimulation />}
+            {selectedTab === 2 && <MySimulations />}
         </div>
     );
 }

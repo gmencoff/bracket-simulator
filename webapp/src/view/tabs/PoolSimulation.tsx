@@ -1,24 +1,25 @@
 import React, { useState } from 'react';
 import './MarchMadness.css'; // Import the CSS file
-import { SimulateMarchMadnessInput, TeamEloSimulationInfo, defaultTeamElo } from 'shared';
-import { httpsCallable } from "firebase/functions";
-import { functions } from '../../utils/firebase';
+import { defaultTeamSelection } from 'shared';
+// import { httpsCallable } from "firebase/functions";
+// import { functions } from '../../utils/firebase';
+import { TeamSelectionSimulationInfo } from 'shared/dist/datamodel/MarchMadnessSimulation';
 
-const simulateMarchMadness = httpsCallable(functions, 'simulateMarchMadness');
+//const simulateMarchMadness = httpsCallable(functions, 'simulateMarchMadness');
 
-export const MarchMadness: React.FC = () => {
-    const [teams, setTeams] = useState<TeamEloSimulationInfo[]>(defaultTeamElo);
+export const PoolSimulation: React.FC = () => {
+    const [teams, setTeams] = useState<TeamSelectionSimulationInfo[]>(defaultTeamSelection);
     const [showDialog, setShowDialog] = useState(false);
     const [numTournaments, setNumTournaments] = useState(1);
 
-    const handleEloChange = (index: number, newElo: number) => {
-        const newTeams = teams;
-        newTeams[index].elo = newElo;
+    const handleSelectionChange = (teamIndex: number, oddsIndex: number, newOdds: number) => {
+        const newTeams = [...teams];
+        newTeams[teamIndex].selectionOdds[oddsIndex] = newOdds / 100; // Convert percentage to decimal
         setTeams(newTeams);
     };
 
     const resetToDefault = () => {
-        setTeams(defaultTeamElo);
+        setTeams(defaultTeamSelection);
     };
 
     const runSimulations = () => {
@@ -30,14 +31,14 @@ export const MarchMadness: React.FC = () => {
     };
 
     const handleDialogOk = async () => {
-        setShowDialog(false);
-        const input = new SimulateMarchMadnessInput(teams, numTournaments);
-        try {
-            await simulateMarchMadness(input.data());
-            alert(`Running ${numTournaments} simulations... Please go to the "My Simulations" tab to check progress.`);
-        } catch (error: any) {
-            alert(error.message);
-        }
+        // setShowDialog(false);
+        // const input = new SimulateMarchMadnessInput(teams, numTournaments);
+        // try {
+        //     await simulateMarchMadness(input.data());
+        //     alert(`Running ${numTournaments} simulations... Please go to the "My Simulations" tab to check progress.`);
+        // } catch (error: any) {
+        //     alert(error.message);
+        // }
     };
 
     return (
@@ -50,24 +51,32 @@ export const MarchMadness: React.FC = () => {
                             <th>Conference</th>
                             <th>Team</th>
                             <th>Seed</th>
-                            <th>Elo</th>
+                            <th>Round 1 (%)</th>
+                            <th>Round 2 (%)</th>
+                            <th>Sweet 16 (%)</th>
+                            <th>Elite 8 (%)</th>
+                            <th>Final 4 (%)</th>
+                            <th>Championship (%)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {teams.map((team, index) => (
-                            <tr key={index}>
+                        {teams.map((team, teamIndex) => (
+                            <tr key={teamIndex}>
                                 <td>{team.conference}</td>
                                 <td>{team.team}</td>
                                 <td>{team.seed}</td>
-                                <td>
-                                    <input
-                                        type="number"
-                                        value={team.elo}
-                                        onChange={(e) =>
-                                            handleEloChange(index, Number(e.target.value))
-                                        }
-                                    />
-                                </td>
+                                {team.selectionOdds.map((odds, oddsIndex) => (
+                                    <td key={oddsIndex}>
+                                        <input
+                                            type="number"
+                                            value={odds * 100} // Convert decimal to percentage
+                                            onChange={(e) =>
+                                                handleSelectionChange(teamIndex, oddsIndex, Number(e.target.value))
+                                            }
+                                            style={{ width: '50px' }}
+                                        />
+                                    </td>
+                                ))}
                             </tr>
                         ))}
                     </tbody>
