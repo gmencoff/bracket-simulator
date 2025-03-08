@@ -17,10 +17,10 @@ export class MarchMadnessSimulationRequest implements SimulationRequest {
     requestedSimulations: number;
     completedSimulations: number;
     requestTime: number;
-    teamInfo: TeamEloSimulationInfo[];
+    teamInfo: TeamSimulationInfo<any>[];
     storageReferenceData: StorageReferenceData | null;
 
-    constructor(requestedSimulations: number, completedSimulations: number, requestTime: number, teamInfo: TeamEloSimulationInfo[], storageReferenceData?: StorageReferenceData) {
+    constructor(requestedSimulations: number, completedSimulations: number, requestTime: number, teamInfo: TeamSimulationInfo<any>[], storageReferenceData?: StorageReferenceData) {
         this.requestedSimulations = requestedSimulations;
         this.completedSimulations = completedSimulations;
         this.requestTime = requestTime;

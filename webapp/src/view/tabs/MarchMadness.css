@@ -12,10 +12,54 @@
     width: 100%;
     border-collapse: collapse;
 }
+  
+.styled-table thead {
+    position: sticky;
+    top: 0;
+}
 
+.styled-table thead th {
+    border: 1px solid #e4eff8;
+    background: white;
+    cursor: pointer;
+}
+  
+.styled-table thead th.header-label {
+    cursor: pointer;
+    background: linear-gradient(0deg, #e4eff8, #4578a2 5%, #e4eff8 150%);
+    color: white;
+    border: 1px solid white;
+}
+  
 .styled-table th,
 .styled-table td {
-    border: 1px solid black;
+    padding: 0.2rem 0.5rem;
+    text-align: center;
+}
+  
+.styled-table td {
+    border: 1px solid #e4eff8;
+}
+  
+.styled-table .tr-inputs th {
+    position: relative;
+    padding: 0;
+    padding-bottom: 1.2rem;
+    margin: 0;
+}
+  
+.styled-table .tr-inputs div {
+    position: absolute;
+    display: inline-block;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+  
+.styled-table input {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .controls {

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import './MarchMadness.css'; // Import the CSS file
-import { defaultTeamSelection } from 'shared';
-// import { httpsCallable } from "firebase/functions";
-// import { functions } from '../../utils/firebase';
+import { defaultTeamSelection, SimulateMarchMadnessInput } from 'shared';
+import { httpsCallable } from "firebase/functions";
+import { functions } from '../../utils/firebase';
 import { TeamSelectionSimulationInfo } from 'shared/dist/datamodel/MarchMadnessSimulation';
 
-//const simulateMarchMadness = httpsCallable(functions, 'simulateMarchMadness');
+const simulateMarchMadness = httpsCallable(functions, 'simulateMarchMadness');
 
 export const PoolSimulation: React.FC = () => {
     const [teams, setTeams] = useState<TeamSelectionSimulationInfo[]>(defaultTeamSelection);
@@ -31,19 +31,19 @@ export const PoolSimulation: React.FC = () => {
     };
 
     const handleDialogOk = async () => {
-        // setShowDialog(false);
-        // const input = new SimulateMarchMadnessInput(teams, numTournaments);
-        // try {
-        //     await simulateMarchMadness(input.data());
-        //     alert(`Running ${numTournaments} simulations... Please go to the "My Simulations" tab to check progress.`);
-        // } catch (error: any) {
-        //     alert(error.message);
-        // }
+        setShowDialog(false);
+        const input = new SimulateMarchMadnessInput(teams, numTournaments);
+        try {
+            await simulateMarchMadness(input.data());
+            alert(`Running ${numTournaments} simulations... Please go to the "My Simulations" tab to check progress.`);
+        } catch (error: any) {
+            alert(error.message);
+        }
     };
 
     return (
         <div className="march-madness-container">
-            <h1>Simulate Tournament Outcomes</h1>
+            <h1>Simulate Expected Brackets</h1>
             <div className="table-container">
                 <table className="styled-table">
                     <thead>
