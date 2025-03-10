@@ -43,7 +43,7 @@ export const PoolSimulation: React.FC = () => {
 
     return (
         <div className="march-madness-container">
-            <h1>Simulate Expected Brackets</h1>
+            <h1>Simulate Opponent Brackets</h1>
             <div className="table-container">
                 <table className="styled-table">
                     <thead>

@@ -15,8 +15,8 @@ const Dashboard: React.FC = () => {
     return (
         <div style={{ padding: "20px" }}>
             <Tabs value={selectedTab} onChange={handleChange} style={{ marginBottom: "20px" }}>
-                <Tab label="Tournament Simulator" />
-                <Tab label="Bracket Pool Simulator" />
+                <Tab label="Tournament Outcome Simulator" />
+                <Tab label="Opponent Bracket Simulator" />
                 <Tab label="My Simulations" />
             </Tabs>
             {selectedTab === 0 && <MarchMadness />}
