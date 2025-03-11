@@ -1,4 +1,4 @@
-import { SimulateMarchMadnessInput } from "./SimulateMarchMadness";
+import { SimulateMarchMadnessInput, simulateMMInputFromData } from "./SimulateMarchMadness";
 import { DocumentReferenceData } from "../dbreferences/DatabaseReferences";
 
 export class SimulateBatchInput {
@@ -18,7 +18,7 @@ export class SimulateBatchInput {
     }
 
     static createFromObject(data: any): SimulateBatchInput {
-        const teams = SimulateMarchMadnessInput.createFromObject(data.specification)
+        const teams = simulateMMInputFromData(data.specification)
         const documentReference = data.documentReference as DocumentReferenceData
         return new SimulateBatchInput(teams,documentReference)
     }

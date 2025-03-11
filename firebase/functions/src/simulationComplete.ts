@@ -1,12 +1,12 @@
 import { onMessagePublished } from "firebase-functions/pubsub";
-import { COLLECTIONS, MarchMadnessSimulationRequest, SimulationComplete, SimulationRequestVisitor, MarchMadnessSimulation, TeamSimulationInfo, Conference, MarchMadnessRound, getMarchMadnessRoundWorker, SimulationRequest } from "shared";
+import { COLLECTIONS, SimulationComplete, SimulationRequestVisitor, MarchMadnessSimulation, TeamSimulationInfo, Conference, MarchMadnessRound, getMarchMadnessRoundWorker, SimulationRequest } from "shared";
 import { getDocument } from "./utils/GetCollection";
 import { SimulationRequestConverter } from "./converters/SimulationRequestConverter";
 import { SimulationConverter } from "./converters/SimulationConverter";
 import { createObjectCsvStringifier } from 'csv-writer';
-import { v4 as uuidv4 } from 'uuid';
 import { StorageReferenceData } from "shared/dist/dbreferences/DatabaseReferences";
 import * as admin from 'firebase-admin';
+import { MMOutcomeSimulationRequest, MMOpponentBracketSimulationRequest } from "shared/dist/datamodel/SimulationRequest";
 
 export const simulationComplete = onMessagePublished({ topic: 'simulation-complete', memory: "2GiB", timeoutSeconds: 300}, async (event) => {
     // When a simulation is completed, perform some final actions
@@ -20,16 +20,24 @@ export const simulationComplete = onMessagePublished({ topic: 'simulation-comple
 });
 
 class SimulationRequestCompletion implements SimulationRequestVisitor<void, FirebaseFirestore.DocumentReference | undefined> {
-    async visitMarchMadnessSimRequest(req: MarchMadnessSimulationRequest, optionalInput?: FirebaseFirestore.DocumentReference<SimulationRequest, FirebaseFirestore.DocumentData>): Promise<void> {
+    async visitMMOutcomeSimulationRequest(req: MMOutcomeSimulationRequest, optionalInput?: FirebaseFirestore.DocumentReference<SimulationRequest, FirebaseFirestore.DocumentData>): Promise<void> {
+        return this.mmSimRequest(req.teamInfo,'tournament-simulations',optionalInput)
+    }
+
+    async visitMMOpponentBracketSimulationRequest(req: MMOpponentBracketSimulationRequest, optionalInput?: FirebaseFirestore.DocumentReference<SimulationRequest, FirebaseFirestore.DocumentData>): Promise<void> {
+        return this.mmSimRequest(req.teamInfo,'opponent-bracket-simulations',optionalInput)
+    }
+
+    async mmSimRequest(teamInfo: TeamSimulationInfo<any>[], filename: string, optionalInput?: FirebaseFirestore.DocumentReference<SimulationRequest, FirebaseFirestore.DocumentData>): Promise<void> {
         if (optionalInput) {
             // Setup
             const collectionRef = optionalInput.collection(COLLECTIONS.Simulations).withConverter(SimulationConverter)
             let lastDoc = null;
             let batchSize = 100; // Adjust based on Firestore limits
-            const path = `simulations/${uuidv4()}.csv`;
+            const path = `simulations/${filename}.csv`;
             
             // create header and data
-            const header = createHeader(req.teamInfo);
+            const header = createHeader(teamInfo);
             const data: any = [];
         
             // Download data in chunks

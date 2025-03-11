@@ -1,9 +1,9 @@
-import { TeamEloSimulationInfo } from "./MarchMadnessSimulation";
 import { StorageReferenceData } from "../dbreferences/DatabaseReferences";
-import { TeamSimulationInfo, teamSimulationInfoConverterLogic } from "./MarchMadnessSimulation";
+import { TeamEloSimulationInfo, TeamSelectionSimulationInfo, TeamSimulationInfo, teamSimulationInfoConverterLogic } from "./MarchMadnessSimulation";
 
 export interface SimulationRequestVisitor<T, U> {
-    visitMarchMadnessSimRequest(req: MarchMadnessSimulationRequest, optionalInput?: U): T;
+    visitMMOutcomeSimulationRequest(req: MMOutcomeSimulationRequest, optionalInput?: U): T;
+    visitMMOpponentBracketSimulationRequest(req: MMOpponentBracketSimulationRequest, optionalInput?: U): T
 }
 
 export interface SimulationRequest {
@@ -13,14 +13,14 @@ export interface SimulationRequest {
     accept<T,U>(visitor: SimulationRequestVisitor<T,U>, optionalInput?: U): T;
 }
 
-export class MarchMadnessSimulationRequest implements SimulationRequest {
+export class MMOutcomeSimulationRequest implements SimulationRequest {
     requestedSimulations: number;
     completedSimulations: number;
     requestTime: number;
-    teamInfo: TeamSimulationInfo<any>[];
+    teamInfo: TeamEloSimulationInfo[];
     storageReferenceData: StorageReferenceData | null;
 
-    constructor(requestedSimulations: number, completedSimulations: number, requestTime: number, teamInfo: TeamSimulationInfo<any>[], storageReferenceData?: StorageReferenceData) {
+    constructor(requestedSimulations: number, completedSimulations: number, requestTime: number, teamInfo: TeamEloSimulationInfo[], storageReferenceData?: StorageReferenceData) {
         this.requestedSimulations = requestedSimulations;
         this.completedSimulations = completedSimulations;
         this.requestTime = requestTime;
@@ -37,7 +37,35 @@ export class MarchMadnessSimulationRequest implements SimulationRequest {
     }
 
     accept<T, U>(visitor: SimulationRequestVisitor<T, U>, optionalInput?: U): T {
-        return visitor.visitMarchMadnessSimRequest(this, optionalInput);
+        return visitor.visitMMOutcomeSimulationRequest(this, optionalInput);
+    }
+}
+
+export class MMOpponentBracketSimulationRequest implements SimulationRequest {
+    requestedSimulations: number;
+    completedSimulations: number;
+    requestTime: number;
+    teamInfo: TeamSelectionSimulationInfo[];
+    storageReferenceData: StorageReferenceData | null;
+
+    constructor(requestedSimulations: number, completedSimulations: number, requestTime: number, teamInfo: TeamSelectionSimulationInfo[], storageReferenceData?: StorageReferenceData) {
+        this.requestedSimulations = requestedSimulations;
+        this.completedSimulations = completedSimulations;
+        this.requestTime = requestTime;
+        this.teamInfo = teamInfo;
+        if (storageReferenceData) {
+            this.storageReferenceData = storageReferenceData;
+        } else {
+            this.storageReferenceData = null;
+        }
+    }
+
+    isComplete(): boolean {
+        return this.completedSimulations >= this.requestedSimulations;
+    }
+
+    accept<T, U>(visitor: SimulationRequestVisitor<T, U>, optionalInput?: U): T {
+        return visitor.visitMMOpponentBracketSimulationRequest(this, optionalInput);
     }
 }
 
@@ -55,10 +83,20 @@ export const simulationRequestConverterLogic = {
 }
 
 class RequestConverter implements SimulationRequestVisitor<Object, null> {
-    
-    visitMarchMadnessSimRequest(req: MarchMadnessSimulationRequest, optionalInput?: null | undefined): Object {
+    visitMMOutcomeSimulationRequest(req: MMOutcomeSimulationRequest, optionalInput?: null | undefined): Object {
         return {
-            type: 'SimMarchMadness',
+            type: 'SimMarchMadnessOutcomes',
+            requestedSimulations: req.requestedSimulations,
+            completedSimulations: req.completedSimulations,
+            requestTime: req.requestTime,
+            teamInfo: req.teamInfo.map(ti => teamSimulationInfoConverterLogic.toFireStore(ti)),
+            storageReferenceData: req.storageReferenceData
+        };
+    }
+    
+    visitMMOpponentBracketSimulationRequest(req: MMOpponentBracketSimulationRequest, optionalInput?: null | undefined): Object {
+        return {
+            type: 'SimMarchMadnessOpponentBracket',
             requestedSimulations: req.requestedSimulations,
             completedSimulations: req.completedSimulations,
             requestTime: req.requestTime,
@@ -69,8 +107,10 @@ class RequestConverter implements SimulationRequestVisitor<Object, null> {
     
     toEvent(event: any): SimulationRequest {
         switch (event.type) {
-            case 'SimMarchMadness':
-                return new MarchMadnessSimulationRequest(event.requestedSimulations, event.completedSimulations, event.requestTime, event.teamInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.storageReferenceData);
+            case 'SimMarchMadnessOutcomes':
+                return new MMOutcomeSimulationRequest(event.requestedSimulations, event.completedSimulations, event.requestTime, event.teamInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.storageReferenceData);
+            case 'SimMarchMadnessOpponentBracket':
+                return new MMOpponentBracketSimulationRequest(event.requestedSimulations, event.completedSimulations, event.requestTime, event.teamInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.storageReferenceData);
             default:
                 throw new Error('Unknown event type');
         }

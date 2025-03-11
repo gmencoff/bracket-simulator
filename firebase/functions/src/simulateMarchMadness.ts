@@ -1,5 +1,5 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { getSimulationRequests, MarchMadnessSimulationRequest, SimulateMarchMadnessInput, SimulateBatchInput } from "shared";
+import { getSimulationRequests, SimulateBatchInput, simulateMMInputFromData } from "shared";
 import { getCollection } from "./utils/GetCollection";
 import { SimulationRequestConverter } from "./converters/SimulationRequestConverter";
 import { PubSub } from '@google-cloud/pubsub';
@@ -7,7 +7,7 @@ import { PubSub } from '@google-cloud/pubsub';
 export const simulateMarchMadness = onCall(async (request) => {
 
     // Get the input in the correct format
-    const input = SimulateMarchMadnessInput.createFromObject(request.data);
+    const input = simulateMMInputFromData(request.data);
 
     // Do not let people request more than 10,000 sims
     if (input.numTournaments > 10000) {
@@ -21,7 +21,7 @@ export const simulateMarchMadness = onCall(async (request) => {
     }
 
     // Create a simulation request document
-    const simulationRequest = new MarchMadnessSimulationRequest(input.numTournaments, 0, Date.now(), input.teams);
+    const simulationRequest = input.getRequest();
 
     // Write the simulation request info to firebase
     const collectionRef = getSimulationRequests(auth.uid);

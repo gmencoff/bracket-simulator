@@ -1,3 +1,4 @@
+import { SimulationRequest } from "../datamodel/SimulationRequest";
 import { DocumentReferenceData } from "../dbreferences/DatabaseReferences";
 
 export class SimulationComplete {

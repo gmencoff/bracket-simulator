@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './MarchMadness.css'; // Import the CSS file
-import { defaultTeamSelection, SimulateMarchMadnessInput } from 'shared';
+import { defaultTeamSelection, SimulateMarchMadnessOpponentBracketInput } from 'shared';
 import { httpsCallable } from "firebase/functions";
 import { functions } from '../../utils/firebase';
 import { TeamSelectionSimulationInfo } from 'shared/dist/datamodel/MarchMadnessSimulation';
@@ -10,7 +10,7 @@ const simulateMarchMadness = httpsCallable(functions, 'simulateMarchMadness');
 export const PoolSimulation: React.FC = () => {
     const [teams, setTeams] = useState<TeamSelectionSimulationInfo[]>(defaultTeamSelection);
     const [showDialog, setShowDialog] = useState(false);
-    const [numTournaments, setNumTournaments] = useState(1);
+    const [numTournaments, setNumTournaments] = useState(1000);
 
     const handleSelectionChange = (teamIndex: number, oddsIndex: number, newOdds: number) => {
         const newTeams = [...teams];
@@ -32,7 +32,7 @@ export const PoolSimulation: React.FC = () => {
 
     const handleDialogOk = async () => {
         setShowDialog(false);
-        const input = new SimulateMarchMadnessInput(teams, numTournaments);
+        const input = new SimulateMarchMadnessOpponentBracketInput(teams, numTournaments);
         try {
             await simulateMarchMadness(input.data());
             alert(`Running ${numTournaments} simulations... Please go to the "My Simulations" tab to check progress.`);

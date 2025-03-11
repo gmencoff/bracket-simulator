@@ -1,5 +1,5 @@
 import React, { JSX, useEffect, useState } from 'react';
-import { getSimulationRequests, MarchMadnessSimulationRequest, SimulationRequest, SimulationRequestVisitor } from 'shared';
+import { getSimulationRequests, SimulationRequest, SimulationRequestVisitor, StorageReferenceData } from 'shared';
 import './MySimulations.css'; // Import the CSS file
 import { auth, storage } from '../../utils/firebase';
 import { getCollection } from '../../utils/GetCollection';
@@ -7,6 +7,7 @@ import { SimulationRequestConverter } from '../../converters/SimulationRequestCo
 import { onSnapshot } from 'firebase/firestore';
 import { ref, getDownloadURL } from "firebase/storage";
 import { saveAs } from "file-saver"; // Helps with downloading
+import { MMOutcomeSimulationRequest, MMOpponentBracketSimulationRequest } from 'shared/dist/datamodel/SimulationRequest';
 
 export const MySimulations: React.FC = () => {
     const [simulations, setSimulations] = useState<SimulationRequest[]>([]);
@@ -46,20 +47,29 @@ export const MySimulations: React.FC = () => {
 };
 
 class SimulationRowRenderer implements SimulationRequestVisitor<JSX.Element, null> {
-    visitMarchMadnessSimRequest(req: MarchMadnessSimulationRequest, optionalInput?: null): JSX.Element {
+    
+    visitMMOutcomeSimulationRequest(req: MMOutcomeSimulationRequest, optionalInput?: null | undefined): JSX.Element {
+        return this.mmsimRow('Tournament Simulation',req.requestedSimulations,req.completedSimulations,req.storageReferenceData)
+    }
+
+    visitMMOpponentBracketSimulationRequest(req: MMOpponentBracketSimulationRequest, optionalInput?: null | undefined): JSX.Element {
+        return this.mmsimRow('Opponent Bracket Simulation',req.requestedSimulations,req.completedSimulations,req.storageReferenceData)
+    }
+
+    mmsimRow(type: string, requestedSimulations: number, completedSimulations: number, storageReferenceData: StorageReferenceData | null): JSX.Element {
         return (
             <div className="simulation-info">
                 <div className="simulation-details">
-                    <p>Type: Simulate March Madness</p>
-                    <p>Number Simulations: {req.requestedSimulations}</p>
+                    <p>Type: {type}</p>
+                    <p>Number Simulations: {requestedSimulations}</p>
                 </div>
                 <div className="simulation-status">
-                    {(req.storageReferenceData?.fullPath) ? (
-                        <button className="download-button" onClick={() => downloadCSV(req.storageReferenceData?.fullPath || '')}>
+                    {(storageReferenceData?.fullPath) ? (
+                        <button className="download-button" onClick={() => downloadCSV(storageReferenceData?.fullPath || '')}>
                             Download Results
                         </button>
                     ) : (
-                        <progress value={req.completedSimulations} max={req.requestedSimulations}></progress>
+                        <progress value={completedSimulations} max={requestedSimulations}></progress>
                     )}
                 </div>
             </div>
