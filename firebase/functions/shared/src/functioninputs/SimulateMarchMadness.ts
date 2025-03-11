@@ -1,4 +1,3 @@
-import { error } from "firebase-functions/logger";
 import { TeamEloSimulationInfo, TeamSelectionSimulationInfo, TeamSimulationInfo, teamSimulationInfoConverterLogic } from "../datamodel/MarchMadnessSimulation";
 import { MMOpponentBracketSimulationRequest, MMOutcomeSimulationRequest, SimulationRequest } from "../datamodel/SimulationRequest";
 
