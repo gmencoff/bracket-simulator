@@ -14,7 +14,7 @@ export const batchSimulate = onMessagePublished({ topic: 'simulate-batch', memor
 
     // Publish messages to simulate in smaller batches
     const batchSize = 100;
-    let remainingSimulations = input.specification.numTournaments;
+    let remainingSimulations = input.requestedSimulations;
     const currentBatchSize = Math.min(batchSize, remainingSimulations);
 
     // Stop if there are no batches left
@@ -23,10 +23,10 @@ export const batchSimulate = onMessagePublished({ topic: 'simulate-batch', memor
     }
 
     // simulat the tournements in a batch
-    await simulateAllTournaments(input.specification.teams, currentBatchSize, input.documentReference);
+    await simulateAllTournaments(input.teamInfo, currentBatchSize, input.documentReference);
 
     // call function again with new remaining sims
-    input.specification.numTournaments = input.specification.numTournaments - currentBatchSize;
+    input.requestedSimulations = input.requestedSimulations - currentBatchSize;
     const pubsub = new PubSub();
     const topic = pubsub.topic('simulate-batch');
     topic.publishMessage({ json: input.data() });

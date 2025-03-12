@@ -20,16 +20,12 @@ export class MMOutcomeSimulationRequest implements SimulationRequest {
     teamInfo: TeamEloSimulationInfo[];
     storageReferenceData: StorageReferenceData | null;
 
-    constructor(requestedSimulations: number, completedSimulations: number, requestTime: number, teamInfo: TeamEloSimulationInfo[], storageReferenceData?: StorageReferenceData) {
+    constructor(requestedSimulations: number, teamInfo: TeamEloSimulationInfo[], completedSimulations: number = 0, requestTime: number = Date.now(), storageReferenceData: StorageReferenceData | null = null) {
         this.requestedSimulations = requestedSimulations;
+        this.teamInfo = teamInfo;
         this.completedSimulations = completedSimulations;
         this.requestTime = requestTime;
-        this.teamInfo = teamInfo;
-        if (storageReferenceData) {
-            this.storageReferenceData = storageReferenceData;
-        } else {
-            this.storageReferenceData = null;
-        }
+        this.storageReferenceData = storageReferenceData;
     }
 
     isComplete(): boolean {
@@ -48,16 +44,12 @@ export class MMOpponentBracketSimulationRequest implements SimulationRequest {
     teamInfo: TeamSelectionSimulationInfo[];
     storageReferenceData: StorageReferenceData | null;
 
-    constructor(requestedSimulations: number, completedSimulations: number, requestTime: number, teamInfo: TeamSelectionSimulationInfo[], storageReferenceData?: StorageReferenceData) {
+    constructor(requestedSimulations: number, teamInfo: TeamSelectionSimulationInfo[], completedSimulations: number = 0, requestTime: number = Date.now(), storageReferenceData: StorageReferenceData | null = null) {
         this.requestedSimulations = requestedSimulations;
+        this.teamInfo = teamInfo;
         this.completedSimulations = completedSimulations;
         this.requestTime = requestTime;
-        this.teamInfo = teamInfo;
-        if (storageReferenceData) {
-            this.storageReferenceData = storageReferenceData;
-        } else {
-            this.storageReferenceData = null;
-        }
+        this.storageReferenceData = storageReferenceData;
     }
 
     isComplete(): boolean {
@@ -108,9 +100,9 @@ class RequestConverter implements SimulationRequestVisitor<Object, null> {
     toEvent(event: any): SimulationRequest {
         switch (event.type) {
             case 'SimMarchMadnessOutcomes':
-                return new MMOutcomeSimulationRequest(event.requestedSimulations, event.completedSimulations, event.requestTime, event.teamInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.storageReferenceData);
+                return new MMOutcomeSimulationRequest(event.requestedSimulations, event.teamInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.completedSimulations, event.requestTime, event.storageReferenceData);
             case 'SimMarchMadnessOpponentBracket':
-                return new MMOpponentBracketSimulationRequest(event.requestedSimulations, event.completedSimulations, event.requestTime, event.teamInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.storageReferenceData);
+                return new MMOpponentBracketSimulationRequest(event.requestedSimulations, event.teamInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.completedSimulations, event.requestTime, event.storageReferenceData);
             default:
                 throw new Error('Unknown event type');
         }

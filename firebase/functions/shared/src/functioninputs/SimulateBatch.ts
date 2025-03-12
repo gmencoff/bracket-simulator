@@ -1,25 +1,29 @@
-import { SimulateMarchMadnessInput, simulateMMInputFromData } from "./SimulateMarchMadness";
 import { DocumentReferenceData } from "../dbreferences/DatabaseReferences";
+import { TeamSimulationInfo, teamSimulationInfoConverterLogic } from "../datamodel/MarchMadnessSimulation";
 
 export class SimulateBatchInput {
-    specification: SimulateMarchMadnessInput
+    requestedSimulations: number
+    teamInfo: TeamSimulationInfo<any>[]
     documentReference: DocumentReferenceData
 
-    constructor(specification: SimulateMarchMadnessInput, documentReference: DocumentReferenceData) {
-        this.specification = specification;
+    constructor(requestedSimulations: number, teamInfo: TeamSimulationInfo<any>[], documentReference: DocumentReferenceData) {
+        this.requestedSimulations = requestedSimulations;
+        this.teamInfo = teamInfo;
         this.documentReference = documentReference;
     }
 
     data(): any {
         return {
-            specification: this.specification.data(),
+            requestedSimulations: this.requestedSimulations,
+            teamInfo: this.teamInfo.map(ti => teamSimulationInfoConverterLogic.toFireStore(ti)),
             documentReference: this.documentReference
         };
     }
 
     static createFromObject(data: any): SimulateBatchInput {
-        const teams = simulateMMInputFromData(data.specification)
-        const documentReference = data.documentReference as DocumentReferenceData
-        return new SimulateBatchInput(teams,documentReference)
+        const requestedSimulations = data.requestedSimulations as number;
+        const teamInfo = data.teamInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti));
+        const documentReference = data.documentReference as DocumentReferenceData;
+        return new SimulateBatchInput(requestedSimulations,teamInfo,documentReference);
     }
 }

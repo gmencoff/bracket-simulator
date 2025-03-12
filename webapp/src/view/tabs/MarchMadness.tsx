@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './MarchMadness.css'; // Import the CSS file
-import { SimulateMarchMadnessOutcomeInput, TeamEloSimulationInfo, defaultTeamElo } from 'shared';
+import { MMOutcomeSimulationRequest, SimulateMarchMadnessInput, TeamEloSimulationInfo, defaultTeamElo } from 'shared';
 import { httpsCallable } from "firebase/functions";
 import { functions } from '../../utils/firebase';
 
@@ -31,7 +31,8 @@ export const MarchMadness: React.FC = () => {
 
     const handleDialogOk = async () => {
         setShowDialog(false);
-        const input = new SimulateMarchMadnessOutcomeInput(teams, numTournaments);
+        const req = new MMOutcomeSimulationRequest(numTournaments, teams);
+        const input = new SimulateMarchMadnessInput(req);
         try {
             await simulateMarchMadness(input.data());
             alert(`Running ${numTournaments} simulations... Please go to the "My Simulations" tab to check progress.`);
