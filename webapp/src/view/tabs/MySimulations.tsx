@@ -7,7 +7,7 @@ import { SimulationRequestConverter } from '../../converters/SimulationRequestCo
 import { onSnapshot } from 'firebase/firestore';
 import { ref, getDownloadURL } from "firebase/storage";
 import { saveAs } from "file-saver"; // Helps with downloading
-import { MMOutcomeSimulationRequest, MMOpponentBracketSimulationRequest } from 'shared/dist/datamodel/SimulationRequest';
+import { MMOutcomeSimulationRequest, MMOpponentBracketSimulationRequest, MMBracketGeneratorSimulationRequest } from 'shared/dist/datamodel/SimulationRequest';
 
 export const MySimulations: React.FC = () => {
     const [simulations, setSimulations] = useState<SimulationRequest[]>([]);
@@ -54,6 +54,11 @@ class SimulationRowRenderer implements SimulationRequestVisitor<JSX.Element, nul
 
     visitMMOpponentBracketSimulationRequest(req: MMOpponentBracketSimulationRequest, optionalInput?: null | undefined): JSX.Element {
         return this.mmsimRow('Opponent Bracket Simulation',req.requestedSimulations,req.completedSimulations,req.storageReferenceData)
+    }
+
+    visitMMBracketGeneratorSimulationRequest(req: MMBracketGeneratorSimulationRequest, optionalInput?: null | undefined): JSX.Element {
+        // TODO: implement
+        return <div></div>
     }
 
     mmsimRow(type: string, requestedSimulations: number, completedSimulations: number, storageReferenceData: StorageReferenceData | null): JSX.Element {

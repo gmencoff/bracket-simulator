@@ -1,6 +1,6 @@
 import { MarchMadnessSimulation, TeamSimulationInfo, TeamEloSimulationInfo, simulateMarchMadnessTournement } from './datamodel/MarchMadnessSimulation';
 import { Simulation, simulationConverterLogic, SimulationVisitor } from './datamodel/Simulation';
-import { SimulationRequest, SimulationRequestVisitor, simulationRequestConverterLogic, MMOutcomeSimulationRequest, MMOpponentBracketSimulationRequest } from './datamodel/SimulationRequest';
+import { SimulationRequest, SimulationRequestVisitor, simulationRequestConverterLogic, MMOutcomeSimulationRequest, MMOpponentBracketSimulationRequest, MMBracketGeneratorSimulationRequest } from './datamodel/SimulationRequest';
 import { COLLECTIONS, getSimulationRequests } from './dbreferences/Collections';
 import { CollectionReferenceData, DocumentReferenceData, StorageReferenceData } from './dbreferences/DatabaseReferences';
 import { SimulateMarchMadnessInput } from './functioninputs/SimulateMarchMadness';
@@ -16,7 +16,7 @@ export {
     SimulateMarchMadnessInput,
     SimulateBatchInput,
     SimulationComplete,
-    SimulationRequest, SimulationRequestVisitor, simulationRequestConverterLogic, MMOutcomeSimulationRequest, MMOpponentBracketSimulationRequest,
+    SimulationRequest, SimulationRequestVisitor, simulationRequestConverterLogic, MMOutcomeSimulationRequest, MMOpponentBracketSimulationRequest, MMBracketGeneratorSimulationRequest,
     Simulation, SimulationVisitor, simulationConverterLogic,
     COLLECTIONS, getSimulationRequests,
     CollectionReferenceData, DocumentReferenceData, StorageReferenceData

@@ -6,7 +6,7 @@ import { SimulationRequestConverter } from "./converters/SimulationRequestConver
 import { SimulationConverter } from "./converters/SimulationConverter";
 import { PubSub } from '@google-cloud/pubsub';
 import * as admin from 'firebase-admin';
-import { MMOutcomeSimulationRequest, MMOpponentBracketSimulationRequest } from "shared/dist/datamodel/SimulationRequest";
+import { MMOutcomeSimulationRequest, MMOpponentBracketSimulationRequest, MMBracketGeneratorSimulationRequest } from "shared/dist/datamodel/SimulationRequest";
 
 export const batchSimulate = onMessagePublished({ topic: 'simulate-batch', memory: "2GiB", timeoutSeconds: 300}, async (event) => {
     // Get the batch simulate input, break it up into smaller batches and simulate each batch
@@ -92,6 +92,11 @@ class RequestProgressUpdater implements SimulationRequestVisitor<SimulationReque
         if (optionalInput) {
             req.completedSimulations += optionalInput;
         }
+        return req;
+    }
+
+    visitMMBracketGeneratorSimulationRequest(req: MMBracketGeneratorSimulationRequest, optionalInput?: number | undefined): SimulationRequest {
+        // TODO: implement
         return req;
     }
 };

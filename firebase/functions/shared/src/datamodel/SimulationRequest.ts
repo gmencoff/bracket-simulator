@@ -4,6 +4,7 @@ import { TeamEloSimulationInfo, TeamSelectionSimulationInfo, TeamSimulationInfo,
 export interface SimulationRequestVisitor<T, U> {
     visitMMOutcomeSimulationRequest(req: MMOutcomeSimulationRequest, optionalInput?: U): T;
     visitMMOpponentBracketSimulationRequest(req: MMOpponentBracketSimulationRequest, optionalInput?: U): T
+    visitMMBracketGeneratorSimulationRequest(req: MMBracketGeneratorSimulationRequest, optionalInput?: U): T
 }
 
 export interface SimulationRequest {
@@ -61,6 +62,35 @@ export class MMOpponentBracketSimulationRequest implements SimulationRequest {
     }
 }
 
+export class MMBracketGeneratorSimulationRequest implements SimulationRequest {
+    requestedSimulations: number;
+    poolSize: number;
+    teamEloInfo: TeamEloSimulationInfo[];
+    teamSelectionInfo: TeamSelectionSimulationInfo[];
+    completedSimulations: number;
+    requestTime: number;
+    storageReferenceData: StorageReferenceData | null;
+    
+    constructor(requestedSimulations: number, poolSize: number, teamEloInfo: TeamEloSimulationInfo[], teamSelectionInfo: TeamSelectionSimulationInfo[], completedSimulations: number = 0, requestTime: number = Date.now(), storageReferenceData: StorageReferenceData | null = null) {
+        this.requestedSimulations = requestedSimulations;
+        this.poolSize = poolSize;
+        this.teamEloInfo = teamEloInfo;
+        this.teamSelectionInfo = teamSelectionInfo;
+        this.completedSimulations = completedSimulations;
+        this.requestTime = requestTime;
+        this.storageReferenceData = storageReferenceData;
+    }
+
+    isComplete(): boolean {
+        // TODO: Implement this
+        throw new Error("Method not implemented.");
+    }
+    
+    accept<T, U>(visitor: SimulationRequestVisitor<T, U>, optionalInput?: U): T {
+        return visitor.visitMMBracketGeneratorSimulationRequest(this, optionalInput);
+    }
+}
+
 // Firebase converter Logic
 export const simulationRequestConverterLogic = {
   toFireStore: function(simulationRequest: SimulationRequest): Object {
@@ -96,6 +126,19 @@ class RequestConverter implements SimulationRequestVisitor<Object, null> {
             storageReferenceData: req.storageReferenceData
         };
     }
+
+    visitMMBracketGeneratorSimulationRequest(req: MMBracketGeneratorSimulationRequest, optionalInput?: null | undefined): Object {
+        return {
+            type: 'SimMarchMadnessBracketGenerator',
+            requestedSimulations: req.requestedSimulations,
+            completedSimulations: req.completedSimulations,
+            poolSize: req.poolSize,
+            teamEloInfo: req.teamEloInfo.map(ti => teamSimulationInfoConverterLogic.toFireStore(ti)),
+            teamSelectionInfo: req.teamSelectionInfo.map(ti => teamSimulationInfoConverterLogic.toFireStore(ti)),
+            requestTime: req.requestTime,
+            storageReferenceData: req.storageReferenceData
+        };
+    }
     
     toEvent(event: any): SimulationRequest {
         switch (event.type) {
@@ -103,6 +146,8 @@ class RequestConverter implements SimulationRequestVisitor<Object, null> {
                 return new MMOutcomeSimulationRequest(event.requestedSimulations, event.teamInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.completedSimulations, event.requestTime, event.storageReferenceData);
             case 'SimMarchMadnessOpponentBracket':
                 return new MMOpponentBracketSimulationRequest(event.requestedSimulations, event.teamInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.completedSimulations, event.requestTime, event.storageReferenceData);
+            case 'SimMarchMadnessBracketGenerator':
+                return new MMBracketGeneratorSimulationRequest(event.requestedSimulations, event.poolSize, event.teamEloInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.teamSelectionInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.completedSimulations, event.requestTime, event.storageReferenceData);
             default:
                 throw new Error('Unknown event type');
         }

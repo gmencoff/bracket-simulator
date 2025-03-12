@@ -6,7 +6,7 @@ import { SimulationConverter } from "./converters/SimulationConverter";
 import { createObjectCsvStringifier } from 'csv-writer';
 import { StorageReferenceData } from "shared/dist/dbreferences/DatabaseReferences";
 import * as admin from 'firebase-admin';
-import { MMOutcomeSimulationRequest, MMOpponentBracketSimulationRequest } from "shared/dist/datamodel/SimulationRequest";
+import { MMOutcomeSimulationRequest, MMOpponentBracketSimulationRequest, MMBracketGeneratorSimulationRequest } from "shared/dist/datamodel/SimulationRequest";
 
 export const simulationComplete = onMessagePublished({ topic: 'simulation-complete', memory: "2GiB", timeoutSeconds: 300}, async (event) => {
     // When a simulation is completed, perform some final actions
@@ -20,12 +20,18 @@ export const simulationComplete = onMessagePublished({ topic: 'simulation-comple
 });
 
 class SimulationRequestCompletion implements SimulationRequestVisitor<void, FirebaseFirestore.DocumentReference | undefined> {
+    
     async visitMMOutcomeSimulationRequest(req: MMOutcomeSimulationRequest, optionalInput?: FirebaseFirestore.DocumentReference<SimulationRequest, FirebaseFirestore.DocumentData>): Promise<void> {
         return this.mmSimRequest(req.teamInfo,'tournament-simulations',optionalInput)
     }
 
     async visitMMOpponentBracketSimulationRequest(req: MMOpponentBracketSimulationRequest, optionalInput?: FirebaseFirestore.DocumentReference<SimulationRequest, FirebaseFirestore.DocumentData>): Promise<void> {
         return this.mmSimRequest(req.teamInfo,'opponent-bracket-simulations',optionalInput)
+    }
+
+    visitMMBracketGeneratorSimulationRequest(req: MMBracketGeneratorSimulationRequest, optionalInput?: admin.firestore.DocumentReference<admin.firestore.DocumentData, admin.firestore.DocumentData> | undefined): Promise<void> {
+        // TODO: Implement
+        return Promise.resolve();
     }
 
     async mmSimRequest(teamInfo: TeamSimulationInfo<any>[], filename: string, optionalInput?: FirebaseFirestore.DocumentReference<SimulationRequest, FirebaseFirestore.DocumentData>): Promise<void> {

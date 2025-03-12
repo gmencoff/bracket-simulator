@@ -3,6 +3,7 @@ import { DocumentReferenceData, getSimulationRequests, MMOpponentBracketSimulati
 import { getCollection } from "./utils/GetCollection";
 import { SimulationRequestConverter } from "./converters/SimulationRequestConverter";
 import { PubSub } from '@google-cloud/pubsub';
+import { MMBracketGeneratorSimulationRequest } from "shared/dist/datamodel/SimulationRequest";
 
 export const simulateMarchMadness = onCall(async (request) => {
 
@@ -37,7 +38,7 @@ export const simulateMarchMadness = onCall(async (request) => {
 });
 
 class RequestValidationVisitor implements SimulationRequestVisitor<void,null> {
-    
+        
     visitMMOutcomeSimulationRequest(req: MMOutcomeSimulationRequest): void {
         if (req.requestedSimulations > 10000) {
             throw new HttpsError("invalid-argument", "Number of tournaments exceeds the limit of 10,000. Please select a lower number.");
@@ -49,16 +50,24 @@ class RequestValidationVisitor implements SimulationRequestVisitor<void,null> {
             throw new HttpsError("invalid-argument", "Number of tournaments exceeds the limit of 10,000. Please select a lower number.");
         }
     }
+
+    visitMMBracketGeneratorSimulationRequest(req: MMBracketGeneratorSimulationRequest, optionalInput?: null | undefined): void {
+        // TODO: validate requests
+    }
 }
 
 class SimulationActionVisitor implements SimulationRequestVisitor<void, DocumentReferenceData> {
-
+    
     visitMMOutcomeSimulationRequest(req: MMOutcomeSimulationRequest, docRef?: DocumentReferenceData): void {
         this.simulateBatch(req.requestedSimulations, req.teamInfo, docRef);
     }
 
     visitMMOpponentBracketSimulationRequest(req: MMOpponentBracketSimulationRequest, docRef?: DocumentReferenceData): void {
         this.simulateBatch(req.requestedSimulations, req.teamInfo, docRef);
+    }
+
+    visitMMBracketGeneratorSimulationRequest(req: MMBracketGeneratorSimulationRequest, optionalInput?: DocumentReferenceData | undefined): void {
+        // TODO: implement
     }
     
     simulateBatch(requestedSimulations: number, teamInfo: TeamSimulationInfo<any>[], docRef?: DocumentReferenceData): void {
