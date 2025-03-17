@@ -1,5 +1,5 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { DocumentReferenceData, getSimulationRequests, MMOpponentBracketSimulationRequest, MMOutcomeSimulationRequest, SimulateBatchInput, SimulateMarchMadnessInput, SimulationRequestVisitor, TeamSimulationInfo } from "shared";
+import { DocumentReferenceData, getSimulationRequests, MMOpponentBracketSimulationRequest, MMOutcomeSimulationRequest, SimulateBatchInput, SimulateMarchMadnessInput, SimulationRequestVisitor } from "shared";
 import { getCollection } from "./utils/GetCollection";
 import { SimulationRequestConverter } from "./converters/SimulationRequestConverter";
 import { PubSub } from '@google-cloud/pubsub';
@@ -52,27 +52,33 @@ class RequestValidationVisitor implements SimulationRequestVisitor<void,null> {
     }
 
     visitMMBracketGeneratorSimulationRequest(req: MMBracketGeneratorSimulationRequest, optionalInput?: null | undefined): void {
-        // TODO: validate requests
+        if (req.requestedSimulations > 10000) {
+            throw new HttpsError("invalid-argument", "Number of tournaments exceeds the limit of 10,000. Please select a lower number.");
+        }
+
+        if (req.poolSize > 1000) {
+            throw new HttpsError("invalid-argument", "Pool size exceeds the limit of 1,000. Please select a lower number.");
+        }
     }
 }
 
 class SimulationActionVisitor implements SimulationRequestVisitor<void, DocumentReferenceData> {
     
     visitMMOutcomeSimulationRequest(req: MMOutcomeSimulationRequest, docRef?: DocumentReferenceData): void {
-        this.simulateBatch(req.requestedSimulations, req.teamInfo, docRef);
+        this.simulateBatch(docRef);
     }
 
     visitMMOpponentBracketSimulationRequest(req: MMOpponentBracketSimulationRequest, docRef?: DocumentReferenceData): void {
-        this.simulateBatch(req.requestedSimulations, req.teamInfo, docRef);
+        this.simulateBatch(docRef);
     }
 
-    visitMMBracketGeneratorSimulationRequest(req: MMBracketGeneratorSimulationRequest, optionalInput?: DocumentReferenceData | undefined): void {
-        // TODO: implement
+    visitMMBracketGeneratorSimulationRequest(req: MMBracketGeneratorSimulationRequest, docRef?: DocumentReferenceData | undefined): void {
+        this.simulateBatch(docRef);
     }
     
-    simulateBatch(requestedSimulations: number, teamInfo: TeamSimulationInfo<any>[], docRef?: DocumentReferenceData): void {
+    simulateBatch(docRef?: DocumentReferenceData): void {
         if (docRef) {
-            const input = new SimulateBatchInput(requestedSimulations, teamInfo, docRef);
+            const input = new SimulateBatchInput(docRef);
             const pubsub = new PubSub();
             const topic = pubsub.topic('simulate-batch');
             topic.publishMessage({json: input.data()});

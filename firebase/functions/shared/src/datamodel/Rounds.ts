@@ -1,5 +1,5 @@
 import { Conference } from "./Conference";
-import { GameResult, TeamSimulationInfo } from "./MarchMadnessSimulation";
+import { GameResult, MarchMadnessSimulation, TeamSimulationInfo } from "./MarchMadnessSimulation";
 
 export enum MarchMadnessRound {
     FirstRound = 'First Round',
@@ -33,6 +33,7 @@ interface RoundWorker {
     simulateRound: (lastRound: GameResult[], teamInfo: TeamSimulationInfo<any>[]) => GameResult[];
     remainingTeams(): number;
     roundIdx(): number
+    getSortedRoundResults: (sim: MarchMadnessSimulation) => GameResult[][];
 }
 
 class FirstRoundWorker implements RoundWorker {
@@ -63,6 +64,10 @@ class FirstRoundWorker implements RoundWorker {
     roundIdx(): number {
         return 0;
     }
+
+    getSortedRoundResults(sim: MarchMadnessSimulation): GameResult[][] {
+        return conferenceSortedGames(sim.round1);
+    }
 }
 
 class SecondRoundWorker implements RoundWorker {
@@ -76,6 +81,10 @@ class SecondRoundWorker implements RoundWorker {
 
     roundIdx(): number {
         return 1;
+    }
+
+    getSortedRoundResults(sim: MarchMadnessSimulation): GameResult[][] {
+        return conferenceSortedGames(sim.round2);
     }
 }
 
@@ -91,6 +100,10 @@ class SweetSixteenWorker implements RoundWorker {
     roundIdx(): number {
         return 2;
     }
+
+    getSortedRoundResults(sim: MarchMadnessSimulation): GameResult[][] {
+        return conferenceSortedGames(sim.sweet16);
+    }
 }
 
 class EliteEightWorker implements RoundWorker {
@@ -104,6 +117,10 @@ class EliteEightWorker implements RoundWorker {
 
     roundIdx(): number {
         return 3;
+    }
+
+    getSortedRoundResults(sim: MarchMadnessSimulation): GameResult[][] {
+        return conferenceSortedGames(sim.elite8);
     }
 }
 
@@ -127,6 +144,10 @@ class FinalFourWorker implements RoundWorker {
     roundIdx(): number {
         return 4;
     }
+
+    getSortedRoundResults(sim: MarchMadnessSimulation): GameResult[][] {
+        return [sim.final4.sort((a,b) => a.gameInfo.gameNumber - b.gameInfo.gameNumber)];
+    }
 }
 
 class ChampionshipWorker implements RoundWorker {
@@ -144,6 +165,10 @@ class ChampionshipWorker implements RoundWorker {
 
     roundIdx(): number {
         return 5;
+    }
+
+    getSortedRoundResults(sim: MarchMadnessSimulation): GameResult[][] {
+        return [sim.championship];
     }
 }
 
@@ -167,4 +192,14 @@ const conferenceGameSimulator = (lastRound: GameResult[], round: MarchMadnessRou
     });
 
     return results;
+}
+
+const conferenceSortedGames = (games: GameResult[]): GameResult[][] => {
+    const conferences = new Set(games.map(game => game.gameInfo.conference));
+    const sortedGames: GameResult[][] = [];
+    conferences.forEach(conference => {
+        const conferenceGames = games.filter(game => game.gameInfo.conference === conference).sort((a,b) => a.gameInfo.gameNumber - b.gameInfo.gameNumber);
+        sortedGames.push(conferenceGames);
+    });
+    return sortedGames;
 }

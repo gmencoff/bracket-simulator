@@ -18,6 +18,69 @@ export const simulateMarchMadnessTournement = (teamInfo: TeamSimulationInfo<any>
     return new MarchMadnessSimulation(results[0], results[1], results[2], results[3], results[4], results[5], Date.now());
 }
 
+export const getBestBracket = (outcome: MarchMadnessSimulation, brackets: MarchMadnessSimulation[]): MarchMadnessSimulation => {
+    let bestBracket = brackets[0];
+    let bestScore = 0;
+    for (let i = 0; i < brackets.length; i++) {
+        const bracket = brackets[i];
+        const bracketScore = calculateBracketScore(outcome, bracket, bestScore);
+        if (bracketScore.beatsCurrentBest) {
+            bestBracket = bracket;
+            bestScore = bracketScore.score;
+        }
+    }
+    return bestBracket;
+}
+
+const pointsUnit = 1;
+const pointsPerRound = 32*pointsUnit;
+
+const calculateBracketScore = (outcome: MarchMadnessSimulation, bracket: MarchMadnessSimulation, currentBestScore: number): { score: number, beatsCurrentBest: boolean } => {
+    // calculate the bracket score. If it cannot exceed the current best score, stop calculating it and return false for beatsCurrentBest
+    const rounds = [MarchMadnessRound.Championship, MarchMadnessRound.FinalFour, MarchMadnessRound.EliteEight, MarchMadnessRound.SweetSixteen, MarchMadnessRound.SecondRound, MarchMadnessRound.FirstRound];
+    let score = 0;
+    let maxPossible = getMaxRemainingPoints(MarchMadnessRound.Championship);
+    for (const round of rounds) {
+        const worker = getMarchMadnessRoundWorker(round);
+        const pointsPerGame = (2**worker.roundIdx()) * pointsUnit;
+        const correctGames = getCorrectGames(outcome, bracket, round);
+        const roundScore = correctGames * pointsPerGame;
+        const pointsLost = pointsPerRound - roundScore;
+        score += roundScore;
+        maxPossible -= pointsLost;
+        if (maxPossible <= currentBestScore) {
+            return { score: score, beatsCurrentBest: false };
+        }
+    }
+    return { score: score, beatsCurrentBest: true };
+}
+
+const getMaxRemainingPoints = (round: MarchMadnessRound): number => {
+    // Get the maximum available points if we haven't yet calculated the given round
+    const worker = getMarchMadnessRoundWorker(round);
+    const remainingRounds = worker.roundIdx() + 1;
+    return remainingRounds * pointsPerRound;
+}
+
+const getCorrectGames = (outcome: MarchMadnessSimulation, bracket: MarchMadnessSimulation, round: MarchMadnessRound): number => {
+    const roundWorker = getMarchMadnessRoundWorker(round);
+    const actualResults = roundWorker.getSortedRoundResults(outcome);
+    const bracketResults = roundWorker.getSortedRoundResults(bracket);
+    let correctGames = 0;
+    for (let i = 0; i < actualResults.length; i++) {
+        const actualConfResults = actualResults[i];
+        const bracketConfResults = bracketResults[i];
+        for (let j = 0; j < actualConfResults.length; j++) {
+            const actualGame = actualConfResults[j];
+            const bracketGame = bracketConfResults[j];
+            if (actualGame.getWinner().team === bracketGame.getWinner().team) {
+                correctGames += 1;
+            }
+        }
+    }
+    return correctGames;
+}
+
 export class MarchMadnessSimulation implements Simulation {
     round1: GameResult[];
     round2: GameResult[];
@@ -50,6 +113,22 @@ export class MarchMadnessSimulation implements Simulation {
 
     accept<T, U>(visitor: SimulationVisitor<T, U>, optionalInput?: U): T {
         return visitor.visitMarchMadnessSimulation(this, optionalInput);
+    }
+}
+
+export class MarchMadnessPoolOutcome implements Simulation {
+    actualResult: MarchMadnessSimulation;
+    bestBracket: MarchMadnessSimulation;
+    tCreated: number;
+
+    constructor(actualResult: MarchMadnessSimulation, bestBracket: MarchMadnessSimulation, tCreated: number = Date.now()) {
+        this.actualResult = actualResult;
+        this.bestBracket = bestBracket;
+        this.tCreated = tCreated;
+    }
+    
+    accept<T, U>(visitor: SimulationVisitor<T, U>, optionalInput?: U): T {
+        return visitor.visitMarchMadnessPoolOutcome(this, optionalInput);
     }
 }
 

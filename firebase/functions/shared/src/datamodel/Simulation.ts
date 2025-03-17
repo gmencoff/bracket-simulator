@@ -1,4 +1,4 @@
-import { gameResultConverterLogic, MarchMadnessSimulation } from "./MarchMadnessSimulation";
+import { gameResultConverterLogic, MarchMadnessPoolOutcome, MarchMadnessSimulation } from "./MarchMadnessSimulation";
 
 export interface Simulation {
     tCreated: number
@@ -7,6 +7,7 @@ export interface Simulation {
 
 export interface SimulationVisitor<T, U> {
     visitMarchMadnessSimulation(req: MarchMadnessSimulation, optionalInput?: U): T;
+    visitMarchMadnessPoolOutcome(req: MarchMadnessPoolOutcome, optionalInput?: U): T;
 }
 
 // Firebase converter Logic
@@ -36,22 +37,41 @@ class SimulationConverter implements SimulationVisitor<Object, null> {
             tCreated: req.tCreated
         };
     }
+
+    visitMarchMadnessPoolOutcome(req: MarchMadnessPoolOutcome, optionalInput?: null | undefined): Object {
+        return {
+            type: 'MarchMadnessPoolOutcome',
+            actualResult: this.visitMarchMadnessSimulation(req.actualResult),
+            bestBracket: this.visitMarchMadnessSimulation(req.bestBracket),
+            tCreated: req.tCreated
+        };
+    }
     
     fromDocument(event: any): Simulation {
         switch (event.type) {
             case 'MarchMadnessSimulation':
-                return new MarchMadnessSimulation(
-                event.round1.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
-                event.round2.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
-                event.sweet16.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
-                event.elite8.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
-                event.final4.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
-                event.championship.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
+                return this.fromMarchMadnessSimulation(event);
+            case 'MarchMadnessPoolOutcome':
+                return new MarchMadnessPoolOutcome(
+                this.fromMarchMadnessSimulation(event.actualResult),
+                this.fromMarchMadnessSimulation(event.bestBracket),
                 event.tCreated
             );
             default:
                 throw new Error('Unknown event type');
         }
+    }
+
+    fromMarchMadnessSimulation(event: any): MarchMadnessSimulation {
+        return new MarchMadnessSimulation(
+            event.round1.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
+            event.round2.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
+            event.sweet16.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
+            event.elite8.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
+            event.final4.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
+            event.championship.map((game: Object) => gameResultConverterLogic.fromFireStore(game)),
+            event.tCreated
+        );
     }
 }
 
