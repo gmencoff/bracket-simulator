@@ -294,7 +294,7 @@ class ChampionshipWorker implements RoundWorker {
 
         // Get championship loser
         const finalslosers = this.getPotentialOpponents(champ,teamInfo);
-        const finalslosersprobs = finalslosers.map(info => info.selectionOdds[this.roundIdx()-1]);
+        const finalslosersprobs = finalslosers.map(info => info.selectionOdds[this.roundIdx()-1]-info.selectionOdds[this.roundIdx()]);
         const loserIdx = getWinnerIndex(finalslosersprobs);
         const loser = finalslosers[loserIdx];
 
@@ -393,11 +393,12 @@ const simulateRoundBackwards = (roundWorker: RoundWorker, nextRound: GameResult[
 const getGameLoser = (roundWorker: RoundWorker, gameWinner: TeamSelectionSimulationInfo, teamInfo: TeamSelectionSimulationInfo[]): TeamSelectionSimulationInfo => {
     const g1opponents = roundWorker.getPotentialOpponents(gameWinner,teamInfo);
     const prevRoundIdx = roundWorker.roundIdx() - 1;
+    const curRoundIdx = roundWorker.roundIdx();
     let g1loser: TeamSelectionSimulationInfo;
     if (prevRoundIdx < 0) {
             g1loser = g1opponents[0];
     } else {
-        const g1OpponentProb = g1opponents.map(info => info.selectionOdds[prevRoundIdx]);
+        const g1OpponentProb = g1opponents.map(info => info.selectionOdds[prevRoundIdx]-info.selectionOdds[curRoundIdx]);
         const g1loserIdx = getWinnerIndex(g1OpponentProb);
         g1loser = g1opponents[g1loserIdx];
     }
