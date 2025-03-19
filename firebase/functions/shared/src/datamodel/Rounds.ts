@@ -329,7 +329,12 @@ const getWinnerIndex = (allprobs: number[]): number => {
     const lastcdf = cdf[cdf.length - 1];
     const rand = Math.random();
     const randnorm = rand * lastcdf;
-    return cdf.findIndex(num => num > randnorm);
+    for (let i = 0; i < cdf.length; i++) {
+        if (cdf[i] >= randnorm) {
+            return i;
+        }
+    }
+    return cdf.length - 1;
 }
 
 const conferenceGameSimulator = (lastRound: GameResult[], round: MarchMadnessRound): GameResult[] => {
