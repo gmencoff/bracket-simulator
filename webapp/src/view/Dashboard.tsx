@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { MarchMadness } from './tabs/MarchMadness';
 import { MySimulations } from './tabs/MySimulations';
 import { PoolSimulation } from './tabs/PoolSimulation';
-import { BracketGenerator } from './tabs/BracketGenerator';
+//import { BracketGenerator } from './tabs/BracketGenerator';
 
 const Dashboard: React.FC = () => {
     const [selectedTab, setSelectedTab] = useState(0);
@@ -18,13 +18,11 @@ const Dashboard: React.FC = () => {
             <Tabs value={selectedTab} onChange={handleChange} style={{ marginBottom: "20px" }}>
                 <Tab label="Tournament Outcome Simulator" />
                 <Tab label="Opponent Bracket Simulator" />
-                <Tab label="Bracket Generator" />
                 <Tab label="My Simulations" />
             </Tabs>
             {selectedTab === 0 && <MarchMadness />}
             {selectedTab === 1 && <PoolSimulation />}
-            {selectedTab === 2 && <BracketGenerator />}
-            {selectedTab === 3 && <MySimulations />}
+            {selectedTab === 2 && <MySimulations />}
         </div>
     );
 }

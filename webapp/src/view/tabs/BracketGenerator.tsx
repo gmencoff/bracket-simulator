@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TextField, Typography, Button } from '@mui/material';
-import { defaultTeamElo, defaultTeamSelection, MMBracketGeneratorSimulationRequest, SimulateMarchMadnessInput } from 'shared';
+import { defaultTeamWinOdds, defaultTeamSelection, MMBracketGeneratorSimulationRequest, SimulateMarchMadnessInput } from 'shared';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../../utils/firebase';
 
@@ -11,7 +11,7 @@ export const BracketGenerator: React.FC = () => {
     const [tournamentOutcomes, setTournamentOutcomes] = useState(1000);
 
     const handleSubmit = async () => {
-        const req = new MMBracketGeneratorSimulationRequest(tournamentOutcomes, bracketEntries, defaultTeamElo, defaultTeamSelection);
+        const req = new MMBracketGeneratorSimulationRequest(tournamentOutcomes, bracketEntries, defaultTeamWinOdds(), defaultTeamSelection());
         const input = new SimulateMarchMadnessInput(req);
         try {
             await simulateMarchMadness(input.data());

@@ -1,24 +1,25 @@
 import React, { useState } from 'react';
 import './MarchMadness.css'; // Import the CSS file
-import { MMOutcomeSimulationRequest, SimulateMarchMadnessInput, TeamEloSimulationInfo, defaultTeamElo } from 'shared';
+import { MMOutcomeSimulationRequest, SimulateMarchMadnessInput, TeamSelectionSimulationInfo, defaultTeamWinOdds } from 'shared';
 import { httpsCallable } from "firebase/functions";
 import { functions } from '../../utils/firebase';
+import { TableOddsView } from './OddsTable';
 
 const simulateMarchMadness = httpsCallable(functions, 'simulateMarchMadness');
 
 export const MarchMadness: React.FC = () => {
-    const [teams, setTeams] = useState<TeamEloSimulationInfo[]>(defaultTeamElo);
+    const [teams, setTeams] = useState<TeamSelectionSimulationInfo[]>(defaultTeamWinOdds());
     const [showDialog, setShowDialog] = useState(false);
     const [numTournaments, setNumTournaments] = useState(1000);
 
-    const handleEloChange = (index: number, newElo: number) => {
-        const newTeams = teams;
-        newTeams[index].elo = newElo;
+    const handleSelectionChange = (teamIndex: number, oddsIndex: number, newOdds: number) => {
+        const newTeams = [...teams];
+        newTeams[teamIndex].selectionOdds[oddsIndex] = newOdds / 100; // Convert percentage to decimal
         setTeams(newTeams);
     };
 
     const resetToDefault = () => {
-        setTeams(defaultTeamElo);
+        setTeams(defaultTeamWinOdds());
     };
 
     const runSimulations = () => {
@@ -42,60 +43,18 @@ export const MarchMadness: React.FC = () => {
     };
 
     return (
-        <div className="march-madness-container">
-            <h1>Simulate Tournament Outcomes</h1>
-            <div className="table-container">
-                <table className="styled-table">
-                    <thead>
-                        <tr>
-                            <th>Conference</th>
-                            <th>Team</th>
-                            <th>Seed</th>
-                            <th>Elo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {teams.map((team, index) => (
-                            <tr key={index}>
-                                <td>{team.conference}</td>
-                                <td>{team.team}</td>
-                                <td>{team.seed}</td>
-                                <td>
-                                    <input
-                                        type="number"
-                                        value={team.elo}
-                                        onChange={(e) =>
-                                            handleEloChange(index, Number(e.target.value))
-                                        }
-                                    />
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-            <div className="controls">
-                <button onClick={runSimulations}>Run Simulations</button>
-                <button onClick={resetToDefault}>Reset to Default</button>
-            </div>
-            {showDialog && (
-                <div className="dialog">
-                    <div className="dialog-content">
-                        <label>
-                            Number of tournaments to simulate:
-                            <input
-                                type="number"
-                                value={numTournaments}
-                                onChange={(e) => setNumTournaments(Number(e.target.value))}
-                            />
-                        </label>
-                        <div className="dialog-buttons">
-                            <button onClick={handleDialogClose}>Cancel</button>
-                            <button onClick={handleDialogOk}>OK</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+        <TableOddsView
+            teams={teams}
+            numTournaments={numTournaments}
+            showDialog={showDialog}
+            title="Simulate March Madness"
+            description="Simulate expected March Madness outcomes based on <a href='https://www.natesilver.net/p/2025-march-madness-ncaa-tournament-predictions'>Nate Silver's</a> projections."
+            onSelectionChange={handleSelectionChange}
+            onRunSimulations={runSimulations}
+            onResetToDefault={resetToDefault}
+            onDialogClose={handleDialogClose}
+            onDialogOk={handleDialogOk}
+            onNumTournamentsChange={setNumTournaments}
+        />
     );
 };

@@ -4,11 +4,12 @@ import { defaultTeamSelection, MMOpponentBracketSimulationRequest, SimulateMarch
 import { httpsCallable } from "firebase/functions";
 import { functions } from '../../utils/firebase';
 import { TeamSelectionSimulationInfo } from 'shared/dist/datamodel/MarchMadnessSimulation';
+import { TableOddsView } from './OddsTable';
 
 const simulateMarchMadness = httpsCallable(functions, 'simulateMarchMadness');
 
 export const PoolSimulation: React.FC = () => {
-    const [teams, setTeams] = useState<TeamSelectionSimulationInfo[]>(defaultTeamSelection);
+    const [teams, setTeams] = useState<TeamSelectionSimulationInfo[]>(defaultTeamSelection());
     const [showDialog, setShowDialog] = useState(false);
     const [numTournaments, setNumTournaments] = useState(1000);
 
@@ -19,7 +20,7 @@ export const PoolSimulation: React.FC = () => {
     };
 
     const resetToDefault = () => {
-        setTeams(defaultTeamSelection);
+        setTeams(defaultTeamSelection());
     };
 
     const runSimulations = () => {
@@ -43,68 +44,18 @@ export const PoolSimulation: React.FC = () => {
     };
 
     return (
-        <div className="march-madness-container">
-            <h1>Simulate Opponent Brackets</h1>
-            <div className="table-container">
-                <table className="styled-table">
-                    <thead>
-                        <tr>
-                            <th>Conference</th>
-                            <th>Team</th>
-                            <th>Seed</th>
-                            <th>Round 1 (%)</th>
-                            <th>Round 2 (%)</th>
-                            <th>Sweet 16 (%)</th>
-                            <th>Elite 8 (%)</th>
-                            <th>Final 4 (%)</th>
-                            <th>Championship (%)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {teams.map((team, teamIndex) => (
-                            <tr key={teamIndex}>
-                                <td>{team.conference}</td>
-                                <td>{team.team}</td>
-                                <td>{team.seed}</td>
-                                {team.selectionOdds.map((odds, oddsIndex) => (
-                                    <td key={oddsIndex}>
-                                        <input
-                                            type="number"
-                                            value={odds * 100} // Convert decimal to percentage
-                                            onChange={(e) =>
-                                                handleSelectionChange(teamIndex, oddsIndex, Number(e.target.value))
-                                            }
-                                            style={{ width: '50px' }}
-                                        />
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-            <div className="controls">
-                <button onClick={runSimulations}>Run Simulations</button>
-                <button onClick={resetToDefault}>Reset to Default</button>
-            </div>
-            {showDialog && (
-                <div className="dialog">
-                    <div className="dialog-content">
-                        <label>
-                            Number of tournaments to simulate:
-                            <input
-                                type="number"
-                                value={numTournaments}
-                                onChange={(e) => setNumTournaments(Number(e.target.value))}
-                            />
-                        </label>
-                        <div className="dialog-buttons">
-                            <button onClick={handleDialogClose}>Cancel</button>
-                            <button onClick={handleDialogOk}>OK</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+        <TableOddsView
+            teams={teams}
+            numTournaments={numTournaments}
+            showDialog={showDialog}
+            title="Simulate Opponent Brackets"
+            description="Simulate what your opponents brackets might look like based on <a href='https://tournament.fantasysports.yahoo.com/mens-basketball-bracket/pickdistribution?guccounter=1'>Yahoo</a> pick distribution."
+            onSelectionChange={handleSelectionChange}
+            onRunSimulations={runSimulations}
+            onResetToDefault={resetToDefault}
+            onDialogClose={handleDialogClose}
+            onDialogOk={handleDialogOk}
+            onNumTournamentsChange={setNumTournaments}
+        />
     );
-};
+}

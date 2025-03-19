@@ -1,6 +1,6 @@
 import { onMessagePublished } from "firebase-functions/v2/pubsub";
 import { getCollection, getDocument } from "./utils/GetCollection";
-import { CollectionReferenceData, COLLECTIONS, DocumentReferenceData, MarchMadnessSimulation, SimulateBatchInput, simulateMarchMadnessTournement, SimulationComplete, SimulationRequest, SimulationRequestVisitor, TeamEloSimulationInfo, TeamSimulationInfo } from "shared";
+import { CollectionReferenceData, COLLECTIONS, DocumentReferenceData, MarchMadnessSimulation, SimulateBatchInput, SimulationComplete, SimulationRequest, SimulationRequestVisitor, TeamSimulationInfo } from "shared";
 import { firestore } from "firebase-admin";
 import { SimulationRequestConverter } from "./converters/SimulationRequestConverter";
 import { SimulationConverter } from "./converters/SimulationConverter";
@@ -54,7 +54,7 @@ class BatchSimulationRunner implements SimulationRequestVisitor<Promise<boolean>
         }
 
         // simulate the tournements in a batch
-        await simulateBestBracket(req.teamEloInfo, req.teamSelectionInfo, currentBatchSize, req.poolSize, simDoc);
+        await simulateBestBracket(req.teamOddsInfo, req.teamSelectionInfo, currentBatchSize, req.poolSize, simDoc);
 
         // Update the request progress
         await updateRequestProgress(currentBatchSize,simDoc);
@@ -64,7 +64,7 @@ class BatchSimulationRunner implements SimulationRequestVisitor<Promise<boolean>
 
     async simulateSimpleRequestBatch(requestedSimulations: number, completedSimulations: number, teamInfo: TeamSimulationInfo<any>[], simDoc?: DocumentReferenceData): Promise<boolean> {
         // Publish messages to simulate in smaller batches
-        const batchSize = 100;
+        const batchSize = 50;
         let remainingSimulations = requestedSimulations - completedSimulations;
         const currentBatchSize = Math.min(batchSize, remainingSimulations);
 
@@ -104,7 +104,7 @@ const simulateAllTournaments = async (teamInfo: TeamSimulationInfo<any>[], reque
     await batch.commit();
 };
 
-const simulateBestBracket = async (teamElo: TeamEloSimulationInfo[], teamSelection: TeamSelectionSimulationInfo[], requestedSimulations: number, poolSize: number, simDoc: DocumentReferenceData) => {
+const simulateBestBracket = async (teamElo: TeamSelectionSimulationInfo[], teamSelection: TeamSelectionSimulationInfo[], requestedSimulations: number, poolSize: number, simDoc: DocumentReferenceData) => {
     // Get the simulation collection
     const collRef: CollectionReferenceData = {
         collectionId: COLLECTIONS.Simulations,
@@ -138,8 +138,9 @@ const simulateBestBracket = async (teamElo: TeamEloSimulationInfo[], teamSelecti
 
 const simulateManyTournaments = (teamInfo: TeamSimulationInfo<any>[], requestedSimulations: number): MarchMadnessSimulation[] => {
     const sims: MarchMadnessSimulation[] = [];
+    const simulator = teamInfo[0].marchMadnessSimulator();
     for (let i = 0; i < requestedSimulations; i++) {
-        sims.push(simulateMarchMadnessTournement(teamInfo));
+        sims.push(simulator.simulateMarchMadnessTournement(teamInfo));
     }
     return sims
 }

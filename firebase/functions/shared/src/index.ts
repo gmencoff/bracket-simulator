@@ -1,4 +1,4 @@
-import { MarchMadnessSimulation, TeamSimulationInfo, TeamEloSimulationInfo, simulateMarchMadnessTournement, getBestBracket, TeamSelectionSimulationInfo, MarchMadnessPoolOutcome } from './datamodel/MarchMadnessSimulation';
+import { MarchMadnessSimulation, TeamSimulationInfo, TeamEloSimulationInfo, getBestBracket, TeamSelectionSimulationInfo, MarchMadnessPoolOutcome } from './datamodel/MarchMadnessSimulation';
 import { Simulation, simulationConverterLogic, SimulationVisitor } from './datamodel/Simulation';
 import { SimulationRequest, SimulationRequestVisitor, simulationRequestConverterLogic, MMOutcomeSimulationRequest, MMOpponentBracketSimulationRequest, MMBracketGeneratorSimulationRequest } from './datamodel/SimulationRequest';
 import { COLLECTIONS, getSimulationRequests } from './dbreferences/Collections';
@@ -8,11 +8,11 @@ import { SimulateBatchInput } from './functioninputs/SimulateBatch';
 import { SimulationComplete } from './functioninputs/SimulationComplete';
 import { Conference } from './datamodel/Conference';
 import { MarchMadnessRound, getMarchMadnessRoundWorker } from './datamodel/Rounds';
-import { defaultTeamElo, defaultTeamSelection, Team } from './datamodel/Teams';
+import { defaultTeamWinOdds, defaultTeamSelection } from './datamodel/Teams';
  
 export {
-    Conference, TeamSimulationInfo, TeamEloSimulationInfo, TeamSelectionSimulationInfo, MarchMadnessSimulation, simulateMarchMadnessTournement, MarchMadnessRound, getMarchMadnessRoundWorker, getBestBracket, MarchMadnessPoolOutcome,
-    Team, defaultTeamElo, defaultTeamSelection,
+    Conference, TeamSimulationInfo, TeamEloSimulationInfo, TeamSelectionSimulationInfo, MarchMadnessSimulation, MarchMadnessRound, getMarchMadnessRoundWorker, getBestBracket, MarchMadnessPoolOutcome,
+    defaultTeamWinOdds, defaultTeamSelection,
     SimulateMarchMadnessInput,
     SimulateBatchInput,
     SimulationComplete,

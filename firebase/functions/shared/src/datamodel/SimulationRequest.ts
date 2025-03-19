@@ -18,10 +18,10 @@ export class MMOutcomeSimulationRequest implements SimulationRequest {
     requestedSimulations: number;
     completedSimulations: number;
     requestTime: number;
-    teamInfo: TeamEloSimulationInfo[];
+    teamInfo: TeamSelectionSimulationInfo[];
     storageReferenceData: StorageReferenceData | null;
 
-    constructor(requestedSimulations: number, teamInfo: TeamEloSimulationInfo[], completedSimulations: number = 0, requestTime: number = Date.now(), storageReferenceData: StorageReferenceData | null = null) {
+    constructor(requestedSimulations: number, teamInfo: TeamSelectionSimulationInfo[], completedSimulations: number = 0, requestTime: number = Date.now(), storageReferenceData: StorageReferenceData | null = null) {
         this.requestedSimulations = requestedSimulations;
         this.teamInfo = teamInfo;
         this.completedSimulations = completedSimulations;
@@ -65,16 +65,16 @@ export class MMOpponentBracketSimulationRequest implements SimulationRequest {
 export class MMBracketGeneratorSimulationRequest implements SimulationRequest {
     requestedSimulations: number;
     poolSize: number;
-    teamEloInfo: TeamEloSimulationInfo[];
+    teamOddsInfo: TeamSelectionSimulationInfo[];
     teamSelectionInfo: TeamSelectionSimulationInfo[];
     completedSimulations: number;
     requestTime: number;
     storageReferenceData: StorageReferenceData | null;
     
-    constructor(requestedSimulations: number, poolSize: number, teamEloInfo: TeamEloSimulationInfo[], teamSelectionInfo: TeamSelectionSimulationInfo[], completedSimulations: number = 0, requestTime: number = Date.now(), storageReferenceData: StorageReferenceData | null = null) {
+    constructor(requestedSimulations: number, poolSize: number, teamOddsInfo: TeamSelectionSimulationInfo[], teamSelectionInfo: TeamSelectionSimulationInfo[], completedSimulations: number = 0, requestTime: number = Date.now(), storageReferenceData: StorageReferenceData | null = null) {
         this.requestedSimulations = requestedSimulations;
         this.poolSize = poolSize;
-        this.teamEloInfo = teamEloInfo;
+        this.teamOddsInfo = teamOddsInfo;
         this.teamSelectionInfo = teamSelectionInfo;
         this.completedSimulations = completedSimulations;
         this.requestTime = requestTime;
@@ -133,7 +133,7 @@ class RequestConverter implements SimulationRequestVisitor<Object, null> {
             requestedSimulations: req.requestedSimulations,
             completedSimulations: req.completedSimulations,
             poolSize: req.poolSize,
-            teamEloInfo: req.teamEloInfo.map(ti => teamSimulationInfoConverterLogic.toFireStore(ti)),
+            teamOddsInfo: req.teamOddsInfo.map(ti => teamSimulationInfoConverterLogic.toFireStore(ti)),
             teamSelectionInfo: req.teamSelectionInfo.map(ti => teamSimulationInfoConverterLogic.toFireStore(ti)),
             requestTime: req.requestTime,
             storageReferenceData: req.storageReferenceData
@@ -147,7 +147,7 @@ class RequestConverter implements SimulationRequestVisitor<Object, null> {
             case 'SimMarchMadnessOpponentBracket':
                 return new MMOpponentBracketSimulationRequest(event.requestedSimulations, event.teamInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.completedSimulations, event.requestTime, event.storageReferenceData);
             case 'SimMarchMadnessBracketGenerator':
-                return new MMBracketGeneratorSimulationRequest(event.requestedSimulations, event.poolSize, event.teamEloInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.teamSelectionInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.completedSimulations, event.requestTime, event.storageReferenceData);
+                return new MMBracketGeneratorSimulationRequest(event.requestedSimulations, event.poolSize, event.teamOddsInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.teamSelectionInfo.map((ti: Object) => teamSimulationInfoConverterLogic.fromFireStore(ti)), event.completedSimulations, event.requestTime, event.storageReferenceData);
             default:
                 throw new Error('Unknown event type');
         }

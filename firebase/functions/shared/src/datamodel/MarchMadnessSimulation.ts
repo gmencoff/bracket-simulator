@@ -1,21 +1,9 @@
 import { Conference } from "./Conference";
 import { getMarchMadnessRoundWorker, MarchMadnessRound } from "./Rounds";
 import { Simulation, SimulationVisitor } from "./Simulation";
-import { Team } from "./Teams";
 
-export const simulateMarchMadnessTournement = (teamInfo: TeamSimulationInfo<any>[]): MarchMadnessSimulation => {
-    // Implement the simulation logic here
-    const results: GameResult[][] = [];
-    const rounds = [MarchMadnessRound.FirstRound, MarchMadnessRound.SecondRound, MarchMadnessRound.SweetSixteen, MarchMadnessRound.EliteEight, MarchMadnessRound.FinalFour, MarchMadnessRound.Championship];
-    for (let i = 0; i < rounds.length; i++) {
-        const roundSim = getMarchMadnessRoundWorker(rounds[i]);
-        if (i === 0) {
-            results[i] = roundSim.simulateRound([], teamInfo);
-        } else {
-            results[i] = roundSim.simulateRound(results[i-1], teamInfo);
-        }
-    }
-    return new MarchMadnessSimulation(results[0], results[1], results[2], results[3], results[4], results[5], Date.now());
+export interface MarchMadnessSimulator {
+    simulateMarchMadnessTournement: (teamInfo: TeamSimulationInfo<any>[]) => MarchMadnessSimulation
 }
 
 export const getBestBracket = (outcome: MarchMadnessSimulation, brackets: MarchMadnessSimulation[]): MarchMadnessSimulation => {
@@ -132,7 +120,7 @@ export class MarchMadnessPoolOutcome implements Simulation {
     }
 }
 
-interface GameInformation {
+export interface GameInformation {
     round: MarchMadnessRound;
     gameNumber: number;
     conference?: Conference;
@@ -182,11 +170,11 @@ export const gameResultConverterLogic = {
 }
 
 export interface TeamSimulationInfo<T extends TeamSimulationInfo<T>> {
-    team: Team;
+    team: string;
     conference: Conference;
     seed: number;
 
-    simulateGame(this: T, competitor: T, round: MarchMadnessRound): Outcome;
+    marchMadnessSimulator(): MarchMadnessSimulator;
     toFirestore(): Object;
 }
 
@@ -195,16 +183,20 @@ interface Outcome {
 }
 
 export class TeamEloSimulationInfo implements TeamSimulationInfo<TeamEloSimulationInfo> {
-    team: Team;
+    team: string;
     conference: Conference;
     seed: number;
     elo: number;
 
-    constructor(team: Team, conference: Conference, seed: number, elo: number) {
+    constructor(team: string, conference: Conference, seed: number, elo: number) {
         this.team = team;
         this.conference = conference;
         this.seed = seed;
         this.elo = elo;
+    }
+
+    marchMadnessSimulator(): MarchMadnessSimulator {
+        return new MarchMadnessEloSimulator();
     }
 
     simulateGame(this: TeamEloSimulationInfo, competitor: TeamEloSimulationInfo, round: MarchMadnessRound): Outcome {
@@ -229,13 +221,31 @@ export class TeamEloSimulationInfo implements TeamSimulationInfo<TeamEloSimulati
     }
 }
 
+class MarchMadnessEloSimulator implements MarchMadnessSimulator {
+    simulateMarchMadnessTournement = (teamInfo: TeamSimulationInfo<any>[]): MarchMadnessSimulation => {
+        // Elo simulator simulates march madness forward
+        const eloInfo = teamInfo as TeamEloSimulationInfo[];
+        const results: GameResult[][] = [];
+        const rounds = [MarchMadnessRound.FirstRound, MarchMadnessRound.SecondRound, MarchMadnessRound.SweetSixteen, MarchMadnessRound.EliteEight, MarchMadnessRound.FinalFour, MarchMadnessRound.Championship];
+        for (let i = 0; i < rounds.length; i++) {
+            const roundSim = getMarchMadnessRoundWorker(rounds[i]);
+            if (i === 0) {
+                results[i] = roundSim.simulateRoundForward([], eloInfo);
+            } else {
+                results[i] = roundSim.simulateRoundForward(results[i-1], eloInfo);
+            }
+        }
+        return new MarchMadnessSimulation(results[0], results[1], results[2], results[3], results[4], results[5], Date.now());
+    }
+}
+
 export class TeamSelectionSimulationInfo implements TeamSimulationInfo<TeamSelectionSimulationInfo> {
-    team: Team;
+    team: string;
     conference: Conference;
     seed: number;
     selectionOdds: number[];
 
-    constructor(team: Team, conference: Conference, seed: number, selectionOdds: number[]) {
+    constructor(team: string, conference: Conference, seed: number, selectionOdds: number[]) {
         this.team = team;
         this.conference = conference;
         this.seed = seed;
@@ -243,16 +253,8 @@ export class TeamSelectionSimulationInfo implements TeamSimulationInfo<TeamSelec
 
     }
 
-    simulateGame(this: TeamSelectionSimulationInfo, competitor: TeamSelectionSimulationInfo, round: MarchMadnessRound): Outcome {
-        const worker = getMarchMadnessRoundWorker(round);
-        const t1odds = this.selectionOdds[worker.roundIdx()];
-        const t2odds = competitor.selectionOdds[worker.roundIdx()];
-        const totalOdds = t1odds + t2odds;
-        if (Math.random() < (t1odds/totalOdds)) {
-            return { winner: 1 }
-        } else {
-            return { winner: 2 }
-        }
+    marchMadnessSimulator(): MarchMadnessSimulator {
+        return new MarchMadnessSelectionSimulator();
     }
 
     toFirestore(): Object {
@@ -263,6 +265,24 @@ export class TeamSelectionSimulationInfo implements TeamSimulationInfo<TeamSelec
             seed: this.seed,
             selectionOdds: this.selectionOdds
         };
+    }
+}
+
+class MarchMadnessSelectionSimulator implements MarchMadnessSimulator {
+    simulateMarchMadnessTournement = (teamInfo: TeamSimulationInfo<any>[]): MarchMadnessSimulation => {
+        // Selection simulator simulates march madness backwards
+        const selectionInfo = teamInfo as TeamSelectionSimulationInfo[];
+        const results: GameResult[][] = [];
+        const rounds = [MarchMadnessRound.Championship, MarchMadnessRound.FinalFour, MarchMadnessRound.EliteEight, MarchMadnessRound.SweetSixteen, MarchMadnessRound.SecondRound, MarchMadnessRound.FirstRound];
+        for (let i = 0; i < rounds.length; i++) {
+            const roundSim = getMarchMadnessRoundWorker(rounds[i]);
+            if (i === 0) {
+                results[i] = roundSim.simulateRoundBackward([], selectionInfo);
+            } else {
+                results[i] = roundSim.simulateRoundBackward(results[i-1], selectionInfo);
+            }
+        }
+        return new MarchMadnessSimulation(results[5], results[4], results[3], results[2], results[1], results[0], Date.now());
     }
 }
 
