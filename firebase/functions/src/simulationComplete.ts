@@ -40,7 +40,7 @@ class SimulationRequestCompletion implements SimulationRequestVisitor<void, Fire
             const collectionRef = optionalInput.collection(COLLECTIONS.Simulations).withConverter(SimulationConverter)
             let lastDoc = null;
             let batchSize = 100; // Adjust based on Firestore limits
-            const path = `simulations/${filename}.csv`;
+            const path = `simulations/${filename}_${Date.now()}.csv`;
             
             // create header and data
             const header = createHeader(teamInfo);
